@@ -1,0 +1,193 @@
+# creating composite indicators -----------------------------------------------
+
+create_composite_indicators <- function(input_df) {
+  input_df |> 
+    mutate(int.fcs_cereals_tubers = fs_fcs_cerealgrainroottuber*2,
+           int.fcs_pulses = fs_fcs_beansnuts*3,
+           int.fcs_vegetables = fs_fcs_vegetableleave,
+           int.fcs_fruit = fs_fcs_fruit,
+           int.fcs_meat_fish = fs_fcs_meatfishegg*4,
+           int.fcs_dairy = fs_fcs_dairy*4,
+           int.fcs_sugar = fs_fcs_sugar*0.5,
+           int.fcs_oils = fs_fcs_fat*0.5,
+           int.rCSILessQlty = rCSILessQlty,
+           int.rCSIBorrow = 2 * rCSIBorrow,
+           int.rCSIMealSize = rCSIMealSize,
+           int.rCSIMealAdult = 3 * rCSIMealAdult,
+           int.rCSIMealNb = rCSIMealNb,
+           int.freq_no_food_lack_resources = case_when(fs_hhs_nofood %in% c("0") ~ 0,
+                                                       fs_hhs_nofood %in% c("1") & fs_hhs_nofood_freq %in% c("1") ~ 0,
+                                                       fs_hhs_nofood %in% c("1") & fs_hhs_nofood_freq %in% c("2") ~ 1,
+                                                       fs_hhs_nofood %in% c("1") & fs_hhs_nofood_freq %in% c("3") ~ 2),
+           int.freq_sleep_hungry = case_when(fs_hhs_sleephungry %in% c("0") ~ 0,
+                                             fs_hhs_sleephungry %in% c("1") & fs_hhs_sleephungry_freq %in% c("1") ~ 0,
+                                             fs_hhs_sleephungry %in% c("1") & fs_hhs_sleephungry_freq %in% c("2") ~ 1,
+                                             fs_hhs_sleephungry %in% c("1") & fs_hhs_sleephungry_freq %in% c("3") ~ 2),
+           int.freq_day_and_night_no_food = case_when(fs_hhs_daynoteating %in% c("0") ~ 0,
+                                                      fs_hhs_daynoteating %in% c("1") & fs_hhs_daynoteating_freq %in% c("1") ~ 0,
+                                                      fs_hhs_daynoteating %in% c("1") & fs_hhs_daynoteating_freq %in% c("2") ~ 1,
+                                                      fs_hhs_daynoteating %in% c("1") & fs_hhs_daynoteating_freq %in% c("3") ~ 2) 
+    ) |> 
+    rowwise() |> 
+    mutate(int.fcs = sum(c_across(int.fcs_cereals_tubers:int.fcs_oils)),
+           int.rcsi = sum(c_across(int.rCSILessQlty:int.rCSIMealNb)),
+           int.hhs = sum(c_across(int.freq_no_food_lack_resources:int.freq_day_and_night_no_food)),
+           int.hh_size = sum(c_across(hh_number_men:hh_number_infants), na.rm = T)
+           
+    ) |>
+    ungroup() |>
+    mutate(i.fcs = int.fcs,
+           i.fcs_cat = case_when(i.fcs <= 21 ~ "Poor",
+                                 i.fcs <= 35 ~ "Borderline",
+                                 i.fcs <= 112 ~ "Acceptable"),
+           i.rcsi = int.rcsi,
+           i.rcsi_cat = case_when(i.rcsi < 4 ~ "rcsi_0_3",
+                                  i.rcsi < 19 ~ "rcsi_4_18",
+                                  i.rcsi >= 19 ~ "rcsi_19+"),
+           i.hhs = int.hhs,
+           i.hhs_cat = case_when(i.hhs == 0 ~ "None",
+                                 i.hhs == 1 ~ "Slight",
+                                 i.hhs <= 3 ~ "Moderate",
+                                 i.hhs == 4 ~ "Severe",
+                                 i.hhs <= 6 ~ "Very severe"),
+           i.hh_composition_size = int.hh_size,
+           i.hoh_gender = ifelse(is.na(hoh_gender), respondent_gender, hoh_gender),
+           i.hoh_age = ifelse(is.na(hoh_age), respondent_age, hoh_age),
+           i.chronic_illiness_male = case_when(chronic_illiness_male == 0 ~ "no",
+                                               chronic_illiness_male > 0 ~ "yes"), 
+           i.chronic_illiness_female = case_when(chronic_illiness_female == 0 ~ "no",
+                                                 chronic_illiness_female > 0 ~ "yes"), 
+           i.pregnant_lac_women = case_when(pregnant_lac_women == 0 ~ "no",
+                                            pregnant_lac_women > 0 ~ "yes"), 
+           i.fc_matrix = case_when( 
+             # 1 - 5
+             i.hhs == 0 & i.rcsi < 4 & i.fcs > 35 ~ 1,
+             i.hhs == 1 & i.rcsi < 4 & i.fcs > 35 ~ 2,
+             (i.hhs >= 2 & i.hhs <= 3) & i.rcsi < 4 & i.fcs > 35 ~ 3,
+             i.hhs == 4 & i.rcsi < 4 & i.fcs > 35 ~ 4,
+             (i.hhs >= 5 & i.hhs <= 6) & i.rcsi < 4 & i.fcs > 35 ~ 5,
+             # 6 - 10
+             i.hhs == 0 & i.rcsi < 4 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 6,
+             i.hhs == 1 & i.rcsi < 4 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 7,
+             (i.hhs >= 2 & i.hhs <= 3) & i.rcsi < 4 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 8,
+             i.hhs == 4 & i.rcsi < 4 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 9,
+             (i.hhs >= 5 & i.hhs <= 6) & i.rcsi < 4 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 10,
+             # 11 - 15
+             i.hhs == 0 & i.rcsi < 4 & i.fcs  < 21.5 ~ 11,
+             i.hhs == 1 & i.rcsi < 4 & i.fcs  < 21.5 ~ 12,
+             (i.hhs >= 2 & i.hhs <= 3) & i.rcsi < 4 & i.fcs  < 21.5 ~ 13,
+             i.hhs == 4 & i.rcsi < 4 & i.fcs  < 21.5 ~ 14,
+             (i.hhs >= 5 & i.hhs <= 6) & i.rcsi < 4 & i.fcs  < 21.5 ~ 15,
+             # 16 - 20
+             i.hhs == 0 & (i.rcsi >= 4 & i.rcsi <= 18) & i.fcs > 35 ~ 16,
+             i.hhs == 1 & (i.rcsi >= 4 & i.rcsi <= 18) & i.fcs > 35 ~ 17,
+             (i.hhs >= 2 & i.hhs <= 3) & (i.rcsi >= 4 & i.rcsi <= 18) & i.fcs > 35 ~ 18,
+             i.hhs == 4 & (i.rcsi >= 4 & i.rcsi <= 18) & i.fcs > 35 ~ 19,
+             (i.hhs >= 5 & i.hhs <= 6) & (i.rcsi >= 4 & i.rcsi <= 18) & i.fcs > 35 ~ 20,
+             # 21 - 25
+             i.hhs == 0 & (i.rcsi >= 4 & i.rcsi <= 18) & (i.fcs >= 21.5 & i.fcs <= 35) ~ 21,
+             i.hhs == 1 & (i.rcsi >= 4 & i.rcsi <= 18) & (i.fcs >= 21.5 & i.fcs <= 35) ~ 22,
+             (i.hhs >= 2 & i.hhs <= 3) & (i.rcsi >= 4 & i.rcsi <= 18) & (i.fcs >= 21.5 & i.fcs <= 35) ~ 23,
+             i.hhs == 4 & (i.rcsi >= 4 & i.rcsi <= 18) & (i.fcs >= 21.5 & i.fcs <= 35) ~ 24,
+             (i.hhs >= 5 & i.hhs <= 6) & (i.rcsi >= 4 & i.rcsi <= 18) & (i.fcs >= 21.5 & i.fcs <= 35) ~ 25,
+             # 26 - 30
+             i.hhs == 0 & (i.rcsi >= 4 & i.rcsi <= 18) & i.fcs  < 21.5 ~ 26,
+             i.hhs == 1 & (i.rcsi >= 4 & i.rcsi <= 18) & i.fcs  < 21.5 ~ 27,
+             (i.hhs >= 2 & i.hhs <= 3) & (i.rcsi >= 4 & i.rcsi <= 18) & i.fcs  < 21.5 ~ 28,
+             i.hhs == 4 & (i.rcsi >= 4 & i.rcsi <= 18) & i.fcs  < 21.5 ~ 29,
+             (i.hhs >= 5 & i.hhs <= 6) & (i.rcsi >= 4 & i.rcsi <= 18) & i.fcs  < 21.5 ~ 30,
+             # 31 - 35
+             i.hhs == 0 & i.rcsi > 18 & i.fcs > 35 ~ 31,
+             i.hhs == 1 & i.rcsi > 18 & i.fcs > 35 ~ 32,
+             (i.hhs >= 2 & i.hhs <= 3) & i.rcsi > 18 & i.fcs > 35 ~ 33,
+             i.hhs == 4 & i.rcsi > 18 & i.fcs > 35 ~ 34,
+             (i.hhs >= 5 & i.hhs <= 6) & i.rcsi > 18 & i.fcs > 35 ~ 35,
+             # 36 - 40
+             i.hhs == 0 & i.rcsi > 18 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 36,
+             i.hhs == 1 & i.rcsi > 18 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 37,
+             (i.hhs >= 2 & i.hhs <= 3) & i.rcsi > 18 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 38,
+             i.hhs == 4 & i.rcsi > 18 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 39,
+             (i.hhs >= 5 & i.hhs <= 6) & i.rcsi > 18 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 40,
+             # 41 - 45
+             i.hhs == 0 & i.rcsi > 18 & i.fcs  < 21.5 ~ 41,
+             i.hhs == 1 & i.rcsi > 18 & i.fcs  < 21.5 ~ 42,
+             (i.hhs >= 2 & i.hhs <= 3) & i.rcsi > 18 & i.fcs  < 21.5 ~ 43,
+             i.hhs == 4 & i.rcsi > 18 & i.fcs  < 21.5 ~ 44,
+             (i.hhs >= 5 & i.hhs <= 6) & i.rcsi > 18 & i.fcs  < 21.5 ~ 45),
+           i.fc_matrix_cat = case_when(i.fc_matrix %in% c(1, 6) ~ "Phase 1",
+                                       i.fc_matrix %in% c(2, 3, 7, 11, 12, 16, 17, 18, 21, 22, 26, 31, 32, 36) ~ "Phase 2",
+                                       i.fc_matrix %in% c(4, 5, 8, 9, 13, 19, 20, 23, 24, 27, 28, 33, 34, 37, 38, 41, 42, 43) ~ "Phase 3",
+                                       i.fc_matrix %in% c(10, 14, 15, 25, 29, 35, 39, 40, 44) ~ "Phase 4",
+                                       i.fc_matrix %in% c(30, 45) ~ "Phase 5"),
+           i.fc_matrix_fcs_hhs = case_when( 
+             # 1 - 5
+             i.hhs == 0 & i.fcs > 35 ~ 1,
+             i.hhs == 1 & i.fcs > 35 ~ 2,
+             (i.hhs >= 2 & i.hhs <= 3) & i.fcs > 35 ~ 3,
+             i.hhs == 4 & i.fcs > 35 ~ 4,
+             (i.hhs >= 5 & i.hhs <= 6) & i.fcs > 35 ~ 5,
+             # 6 - 10
+             i.hhs == 0 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 6,
+             i.hhs == 1 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 7,
+             (i.hhs >= 2 & i.hhs <= 3) & (i.fcs >= 21.5 & i.fcs <= 35) ~ 8,
+             i.hhs == 4 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 9,
+             (i.hhs >= 5 & i.hhs <= 6) & (i.fcs >= 21.5 & i.fcs <= 35) ~ 10,
+             # 11 - 15
+             i.hhs == 0 & i.fcs  < 21.5 ~ 11,
+             i.hhs == 1 & i.fcs  < 21.5 ~ 12,
+             (i.hhs >= 2 & i.hhs <= 3) & i.fcs  < 21.5 ~ 13,
+             i.hhs == 4 & i.fcs  < 21.5 ~ 14,
+             (i.hhs >= 5 & i.hhs <= 6) & i.fcs  < 21.5 ~ 15,
+             # 16 - 20
+             i.hhs == 0  & i.fcs > 35 ~ 16,
+             i.hhs == 1  & i.fcs > 35 ~ 17,
+             (i.hhs >= 2 & i.hhs <= 3)  & i.fcs > 35 ~ 18,
+             i.hhs == 4  & i.fcs > 35 ~ 19,
+             (i.hhs >= 5 & i.hhs <= 6)  & i.fcs > 35 ~ 20,
+             # 21 - 25
+             i.hhs == 0  & (i.fcs >= 21.5 & i.fcs <= 35) ~ 21,
+             i.hhs == 1  & (i.fcs >= 21.5 & i.fcs <= 35) ~ 22,
+             (i.hhs >= 2 & i.hhs <= 3)  & (i.fcs >= 21.5 & i.fcs <= 35) ~ 23,
+             i.hhs == 4  & (i.fcs >= 21.5 & i.fcs <= 35) ~ 24,
+             (i.hhs >= 5 & i.hhs <= 6)  & (i.fcs >= 21.5 & i.fcs <= 35) ~ 25,
+             # 26 - 30
+             i.hhs == 0  & i.fcs  < 21.5 ~ 26,
+             i.hhs == 1  & i.fcs  < 21.5 ~ 27,
+             (i.hhs >= 2 & i.hhs <= 3)  & i.fcs  < 21.5 ~ 28,
+             i.hhs == 4  & i.fcs  < 21.5 ~ 29,
+             (i.hhs >= 5 & i.hhs <= 6)  & i.fcs  < 21.5 ~ 30,
+             # 31 - 35
+             i.hhs == 0 & i.fcs > 35 ~ 31,
+             i.hhs == 1 & i.fcs > 35 ~ 32,
+             (i.hhs >= 2 & i.hhs <= 3) & i.fcs > 35 ~ 33,
+             i.hhs == 4 & i.fcs > 35 ~ 34,
+             (i.hhs >= 5 & i.hhs <= 6) & i.fcs > 35 ~ 35,
+             # 36 - 40
+             i.hhs == 0 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 36,
+             i.hhs == 1 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 37,
+             (i.hhs >= 2 & i.hhs <= 3) & (i.fcs >= 21.5 & i.fcs <= 35) ~ 38,
+             i.hhs == 4 & (i.fcs >= 21.5 & i.fcs <= 35) ~ 39,
+             (i.hhs >= 5 & i.hhs <= 6) & (i.fcs >= 21.5 & i.fcs <= 35) ~ 40,
+             # 41 - 45
+             i.hhs == 0 & i.fcs  < 21.5 ~ 41,
+             i.hhs == 1 & i.fcs  < 21.5 ~ 42,
+             (i.hhs >= 2 & i.hhs <= 3) & i.fcs  < 21.5 ~ 43,
+             i.hhs == 4 & i.fcs  < 21.5 ~ 44,
+             (i.hhs >= 5 & i.hhs <= 6) & i.fcs  < 21.5 ~ 45),
+           i.fc_matrix_fcs_hhs = case_when(i.fc_matrix_fcs_hhs %in% c(1, 6) ~ "Phase 1",
+                                           i.fc_matrix_fcs_hhs %in% c(2, 3, 7, 11, 12, 16, 17, 18, 21, 22, 26, 31, 32, 36) ~ "Phase 2",
+                                           i.fc_matrix_fcs_hhs %in% c(4, 5, 8, 9, 13, 19, 20, 23, 24, 27, 28, 33, 34, 37, 38, 41, 42, 43) ~ "Phase 3",
+                                           i.fc_matrix_fcs_hhs %in% c(10, 14, 15, 25, 29, 35, 39, 40, 44) ~ "Phase 4",
+                                           i.fc_matrix_fcs_hhs %in% c(30, 45) ~ "Phase 5"),
+    ) |> 
+    addindicators::add_lcsi(lcsi_stress_vars = c("liv_stress_lcsi_1", "liv_stress_lcsi_2", "liv_stress_lcsi_3", "liv_stress_lcsi_4"),
+                            lcsi_crisis_vars = c("liv_crisis_lcsi_1", "liv_crisis_lcsi_2", "liv_crisis_lcsi_3"),
+                            lcsi_emergency_vars = c("liv_emerg_lcsi_1", "liv_emerg_lcsi_2", "liv_emerg_lcsi_3"),
+                            yes_val = "yes",
+                            no_val = "no_had_no_need",
+                            exhausted_val = "no_exhausted",
+                            not_applicable_val = "not_applicable") |> 
+    rename(i.lcsi_cat = lcsi_cat ) |> 
+    select(-c(starts_with("int.")))
+}
+
