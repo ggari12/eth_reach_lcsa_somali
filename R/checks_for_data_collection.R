@@ -16,12 +16,16 @@ df_tool_data <- readxl::read_excel(data_path) |>
          end = as_datetime(end)) |> 
   checks_add_extra_cols(input_enumerator_id_col = "enumerator_id",
                         input_location_col = "hh_kebele") |> 
+  
   create_composite_indicators() |> 
   rowwise() |> 
   mutate( 
     i.hh_tot_income = sum(c_across(last30_income_agriculture_livestock:last30_hh_other_income_amount), na.rm = T),
-    i.tot_expenditure = sum(c_across(expenditure_food:expenditure_other_frequent), na.rm = T)
-  ) |>
+    i.tot_expenditure = sum(c_across(expenditure_food:expenditure_other_frequent), na.rm = T),
+    int.hh_number_male = sum(c_across(c("hh_number_men_count", "hh_number_boys_count")), na.rm = T),
+    int.hh_number_female = sum(c_across(c("hh_number_women_count", "hh_number_girls_count")), na.rm = T)
+  
+    ) |>
   ungroup()
 
 # loops -----------------------------------------------------------------------
@@ -173,13 +177,13 @@ add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_l
 
 # pregnant_lac_women
 df_logic_c_pregnant_lac_women <- df_tool_data |> 
-  filter(pregnant_lac_women  > int.hh_number_pregnant_lac_women) |> 
+  filter(pregnant_lac_women  > int.hh_number_female) |> 
   mutate(i.check.type = "change_response",
          i.check.name = "pregnant_lac_women",
          i.check.current_value = as.character(pregnant_lac_women),
-         i.check.value = as.character(int.hh_number_pregnant_lac_women),
+         i.check.value = as.character(int.hh_number_female),
          i.check.issue_id = "logic_c_pregnant_lac_women",
-         i.check.issue = glue("pregnant_lac_women greater than hh composition, int.hh_number_pregnant_lac_women: {int.hh_number_pregnant_lac_women}"),
+         i.check.issue = glue("pregnant_lac_women greater than hh composition, int.hh_number_female: {int.hh_number_female}"),
          i.check.other_text = "",
          i.check.checked_by = "GG",
          i.check.checked_date = as_date(today()),
