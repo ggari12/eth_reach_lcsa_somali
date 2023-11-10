@@ -195,6 +195,26 @@ df_logic_c_pregnant_lac_women <- df_tool_data |>
   supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_pregnant_lac_women")
 
+# HH reports 'population come from IDP', but not describes in the household's situation
+df_logic_c_pop_from_idp_but_not_describe_hh_situation <- df_tool_data |> 
+  filter(pop_group %in%  c("idp"), hh_situation %in% c( "non_displaced_households")) |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "pop_group",
+         i.check.current_value = pop_group,
+         i.check.value = "",
+         i.check.issue_id = "pop_from_idp_but_not_describe_hh_situation",
+         i.check.issue = glue("pop_group: {pop_group} but hh_situation: {hh_situation}"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  batch_select_rename()
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_pop_from_idp_but_not_describe_hh_situation")
+
 # HH reports 'sell more livestock than usual', but reports not owning any livestock
 df_logic_c_sell_livestock_but_not_owning_any_livestock <- df_tool_data |> 
   filter(liv_stress_4 %in%  c("yes"), hh_own_livestock %in% c( "no")) |> 
