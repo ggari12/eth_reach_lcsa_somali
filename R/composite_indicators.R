@@ -1,5 +1,5 @@
 # creating composite indicators -----------------------------------------------
-
+ hikm 
 create_composite_indicators <- function(input_df) {
   input_df |> 
     mutate(int.fcs_cereals_tubers = fs_fcs_cerealgrainroottuber*2,

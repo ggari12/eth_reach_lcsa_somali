@@ -30,14 +30,14 @@ df_tool_data <- readxl::read_excel(data_path) |>
 
 # loops -----------------------------------------------------------------------
 # loop_hh_roster
-loop_hh_roster <- readxl::read_excel(path = data_path, sheet = "grp_hh_roster_loop")
+loop_hh_roster <- readxl::read_excel(path = data_path, sheet = "hh_roster_loop")
 
 df_raw_data_loop_hh_roster <- df_tool_data |> 
   select(-`_index`) |> 
   inner_join(loop_hh_roster, by = c("_uuid" = "_submission__uuid"))
 
 # loop_hh_health
-loop_hh_health <- readxl::read_excel(path = data_path, sheet = "grp_hh_health_loop")
+loop_hh_health <- readxl::read_excel(path = data_path, sheet = "hh_health_loop")
 
 df_raw_data_loop_hh_health <- df_tool_data |> 
   select(-`_index`) |> 
