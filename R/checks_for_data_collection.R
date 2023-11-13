@@ -1,3 +1,4 @@
+###############################################################################
 # checks for data collection
 # read packages
 library(tidyverse)
@@ -13,7 +14,8 @@ data_path <- "inputs/REACH_ETH_LCSA_Somali_data.xlsx"
 
 df_tool_data <- readxl::read_excel(data_path) |>  
   mutate(start = as_datetime(start),
-         end = as_datetime(end)) |> 
+         end = as_datetime(end),
+         enumerator_id = ifelse(is.na(enumerator_id), enum_id, enumerator_id)) |> 
   checks_add_extra_cols(input_enumerator_id_col = "enumerator_id",
                         input_location_col = "hh_kebele") |> 
   
@@ -22,26 +24,26 @@ df_tool_data <- readxl::read_excel(data_path) |>
   mutate( 
     i.hh_tot_income = sum(c_across(last30_income_agriculture_livestock:last30_hh_other_income_amount), na.rm = T),
     i.tot_expenditure = sum(c_across(expenditure_food:expenditure_other_frequent), na.rm = T),
-    int.hh_number_male = sum(c_across(c("hh_number_men_count", "hh_number_boys_count")), na.rm = T),
-    int.hh_number_female = sum(c_across(c("hh_number_women_count", "hh_number_girls_count")), na.rm = T)
+    #int.hh_number_male = sum(c_across(c("hh_number_men_count", "hh_number_boys_count")), na.rm = T),
+    #int.hh_number_female = sum(c_across(c("hh_number_women_count", "hh_number_girls_count")), na.rm = T)
   
     ) |>
   ungroup()
 
 # loops -----------------------------------------------------------------------
 # loop_hh_roster
-loop_hh_roster <- readxl::read_excel(path = data_path, sheet = "hh_roster_loop")
+loop_hh_roster <- readxl::read_excel(path = data_path, sheet = "hh_roster")
 
 df_raw_data_loop_hh_roster <- df_tool_data |> 
   select(-`_index`) |> 
   inner_join(loop_hh_roster, by = c("_uuid" = "_submission__uuid"))
 
 # loop_hh_health
-loop_hh_health <- readxl::read_excel(path = data_path, sheet = "hh_health_loop")
+loop_hh_health <- readxl::read_excel(path = data_path, sheet = "health_loop")
 
 df_raw_data_loop_hh_health <- df_tool_data |> 
   select(-`_index`) |> 
-  inner_join(grp_hh_health, by = c("_uuid" = "_submission__uuid"))
+  inner_join(loop_hh_health, by = c("_uuid" = "_submission__uuid"))
 
 # tool
 loc_tool <- "inputs/REACH_ETH_LCSA_Somali_tool.xlsx"
@@ -82,7 +84,7 @@ df_logic_c_enumerator_id_harmonization <- df_tool_data |>
   mutate(i.check.type = "change_response",
          i.check.name = "enumerator_id",
          i.check.current_value = "NA",
-         i.check.value = enum_code,
+         i.check.value = enumerator_id,
          i.check.issue_id = "logic_c_enumerator_id_harmonization",
          i.check.issue = "enumerator_id_harmonization",
          i.check.other_text = "",
@@ -135,15 +137,15 @@ df_others_data <- supporteR::extract_other_specify_data(input_tool_data = df_too
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_others_data")
 
 # logical checks --------------------------------------------------------------
-# chronic_illiness_male
-df_logic_c_chronic_illiness_male <- df_tool_data |> 
-  filter(chronic_illiness_male  > int.hh_number_male) |> 
+# chronic_illness_male
+df_logic_c_chronic_illness_male <- df_tool_data |> 
+  filter(chronic_illness_male  > hh_male_count) |> 
   mutate(i.check.type = "change_response",
-         i.check.name = "chronic_illiness_male",
-         i.check.current_value = as.character(chronic_illiness_male),
-         i.check.value = as.character(int.hh_number_male),
-         i.check.issue_id = "logic_c_chronic_illiness_male",
-         i.check.issue = glue("chronic_illiness_male greater than hh composition, int.hh_number_male: {int.hh_number_male}"),
+         i.check.name = "chronic_illness_male",
+         i.check.current_value = as.character(chronic_illness_male),
+         i.check.value = as.character(hh_male_count),
+         i.check.issue_id = "logic_c_chronic_illness_male",
+         i.check.issue = glue("chronic_illness_male greater than hh composition, hh_male_count: {hh_male_count}"),
          i.check.other_text = "",
          i.check.checked_by = "AT",
          i.check.checked_date = as_date(today()),
@@ -153,17 +155,18 @@ df_logic_c_chronic_illiness_male <- df_tool_data |>
          i.check.so_sm_choices = "") |> 
   filter(!is.na(i.check.current_value)) |> 
   supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
-add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_chronic_illiness_male")
 
-# chronic_illiness_female
-df_logic_c_chronic_illiness_female <- df_tool_data |> 
-  filter(chronic_illiness_female  > int.hh_number_female) |> 
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_chronic_illness_male")
+
+# chronic_illness_female
+df_logic_c_chronic_illness_female <- df_tool_data |> 
+  filter(chronic_illness_female  > hh_female_count) |> 
   mutate(i.check.type = "change_response",
-         i.check.name = "chronic_illiness_female",
-         i.check.current_value = as.character(chronic_illiness_female),
-         i.check.value = as.character(int.hh_number_female),
-         i.check.issue_id = "logic_c_chronic_illiness_female",
-         i.check.issue = glue("chronic_illiness_female greater than hh composition, int.hh_number_female: {int.hh_number_female}"),
+         i.check.name = "chronic_illness_female",
+         i.check.current_value = as.character(chronic_illness_female),
+         i.check.value = as.character(hh_female_count),
+         i.check.issue_id = "logic_c_chronic_illness_female",
+         i.check.issue = glue("chronic_illness_female greater than hh composition, hh_female_count: {hh_female_count}"),
          i.check.other_text = "",
          i.check.checked_by = "AT",
          i.check.checked_date = as_date(today()),
@@ -173,17 +176,18 @@ df_logic_c_chronic_illiness_female <- df_tool_data |>
          i.check.so_sm_choices = "") |> 
   filter(!is.na(i.check.current_value)) |> 
   supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
-add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_chronic_illiness_female")
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_chronic_illness_female")
 
 # pregnant_lac_women
 df_logic_c_pregnant_lac_women <- df_tool_data |> 
-  filter(pregnant_lac_women  > int.hh_number_female) |> 
+  filter(pregnant_lac_women  > hh_female_count) |> 
   mutate(i.check.type = "change_response",
          i.check.name = "pregnant_lac_women",
          i.check.current_value = as.character(pregnant_lac_women),
-         i.check.value = as.character(int.hh_number_female),
+         i.check.value = as.character(hh_female_count),
          i.check.issue_id = "logic_c_pregnant_lac_women",
-         i.check.issue = glue("pregnant_lac_women greater than hh composition, int.hh_number_female: {int.hh_number_female}"),
+         i.check.issue = glue("pregnant_lac_women greater than hh composition, hh_female_count: {hh_female_count}"),
          i.check.other_text = "",
          i.check.checked_by = "GG",
          i.check.checked_date = as_date(today()),
@@ -193,6 +197,7 @@ df_logic_c_pregnant_lac_women <- df_tool_data |>
          i.check.so_sm_choices = "") |> 
   filter(!is.na(i.check.current_value)) |> 
   supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
+
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_pregnant_lac_women")
 
 # HH reports 'population come from IDP', but not describes in the household's situation
@@ -257,14 +262,14 @@ add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_l
 
 # same value of fcs components
 df_fd_consumption_score_same <- df_tool_data |>  
-  filter(if_all(c(fs_fcs_cerealgrainroottuber, fs_fcs_beansnuts, fs_fcs_vegetableleave, fs_fcs_fruit, fs_fcs_condiment, 
-                  fs_fcs_meatfishegg, fs_fcs_dairy, fs_fcs_sugar, fs_fcs_fat), ~ fs_fcs_cerealgrainroottuber == .x))  |> 
+  filter(if_all(c(fs_fcs_cereals_grains_roots_tubers, fs_fcs_beans_nuts, fs_fcs_vegetables_leaves, fs_fcs_fruit, fs_fcs_condiment, 
+                  fs_fcs_meat_fish_eggs, fs_fcs_dairy, fs_fcs_sugar, fs_fcs_oil_fat_butter), ~ fs_fcs_cereals_grains_roots_tubers == .x))  |> 
   mutate(i.check.type = "change_response",
-         i.check.name = "fs_fcs_cerealgrainroottuber",
-         i.check.current_value = as.character(fs_fcs_cerealgrainroottuber),
+         i.check.name = "fs_fcs_cereals_grains_roots_tubers",
+         i.check.current_value = as.character(fs_fcs_cereals_grains_roots_tubers),
          i.check.value = "NA",
          i.check.issue_id = "logic_c_fd_consumption_score_same",
-         i.check.issue = glue("fs_fcs_cerealgrainroottuber :{fs_fcs_cerealgrainroottuber}, fs_fcs_beansnuts :{fs_fcs_beansnuts}, fs_fcs_vegetableleave :{fs_fcs_vegetableleave}, fs_fcs_fruit :{fs_fcs_fruit}, fs_fcs_condiment :{fs_fcs_condiment}, fs_fcs_meatfishegg :{fs_fcs_meatfishegg}, fs_fcs_dairy :{fs_fcs_dairy}, fs_fcs_sugar :{fs_fcs_sugar}, fs_fcs_fat :{fs_fcs_fat}"),
+         i.check.issue = glue("fs_fcs_cereals_grains_roots_tubers:{fs_fcs_cereals_grains_roots_tubers}, fs_fcs_beans_nuts:{fs_fcs_beans_nuts}, fs_fcs_vegetables_leaves:{fs_fcs_vegetables_leaves}, fs_fcs_fruit:{fs_fcs_fruit}, fs_fcs_condiment:{fs_fcs_condiment}, fs_fcs_meat_fish_eggs:{fs_fcs_meat_fish_eggs}, fs_fcs_dairy:{fs_fcs_dairy}, fs_fcs_sugar:{fs_fcs_sugar}, fs_fcs_oil_fat_butter:{fs_fcs_oil_fat_butter}"),
          i.check.other_text = "",
          i.check.checked_by = "AT",
          i.check.checked_date = as_date(today()),
@@ -275,24 +280,24 @@ df_fd_consumption_score_same <- df_tool_data |>
   slice(rep(1:n(), each = 9)) |>  
   group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |>  
   mutate(rank = row_number(),
-         i.check.name = case_when(rank == 1 ~ "fs_fcs_cerealgrainroottuber", 
-                                  rank == 2 ~ "fs_fcs_beansnuts",
-                                  rank == 3 ~ "fs_fcs_vegetableleave", 
+         i.check.name = case_when(rank == 1 ~ "fs_fcs_cereals_grains_roots_tubers", 
+                                  rank == 2 ~ "fs_fcs_beans_nuts",
+                                  rank == 3 ~ "fs_fcs_vegetables_leaves", 
                                   rank == 4 ~ "fs_fcs_fruit", 
                                   rank == 5 ~ "fs_fcs_condiment", 
-                                  rank == 6 ~ "fs_fcs_meatfishegg", 
+                                  rank == 6 ~ "fs_fcs_meat_fish_eggs", 
                                   rank == 7 ~ "fs_fcs_dairy", 
                                   rank == 8 ~ "fs_fcs_sugar", 
-                                  TRUE ~ "fs_fcs_fat"),
-         i.check.current_value = case_when(rank == 1 ~ as.character(fs_fcs_cerealgrainroottuber),
-                                           rank == 2 ~ as.character(fs_fcs_beansnuts),
-                                           rank == 3 ~ as.character(fs_fcs_vegetableleave), 
+                                  TRUE ~ "fs_fcs_oil_fat_butter"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(fs_fcs_cereals_grains_roots_tubers),
+                                           rank == 2 ~ as.character(fs_fcs_beans_nuts),
+                                           rank == 3 ~ as.character(fs_fcs_vegetables_leaves), 
                                            rank == 4 ~ as.character(fs_fcs_fruit), 
                                            rank == 5 ~ as.character(fs_fcs_condiment), 
-                                           rank == 6 ~ as.character(fs_fcs_meatfishegg), 
+                                           rank == 6 ~ as.character(fs_fcs_meat_fish_eggs), 
                                            rank == 7 ~ as.character(fs_fcs_dairy), 
                                            rank == 8 ~ as.character(fs_fcs_sugar), 
-                                           TRUE ~ as.character(fs_fcs_fat))
+                                           TRUE ~ as.character(fs_fcs_oil_fat_butter))
   ) |> 
   supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
 
@@ -397,8 +402,11 @@ add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_l
 # check FSL -------------------------------------------------------------------
 
 # combined  checks ------------------------------------------------------------
+
 df_combined_checks <- bind_rows(checks_output)
 
-# output the log
+# output the log --------------------------------------------------------------
+
 write_csv(x = df_combined_checks, file = paste0("outputs/", butteR::date_file_prefix(), "_combined_checks_eth_lcsa_somali.csv"), na = "")
 
+###############################################################################

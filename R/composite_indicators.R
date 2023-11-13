@@ -1,15 +1,16 @@
+###############################################################################
 # creating composite indicators -----------------------------------------------
- hikm 
+
 create_composite_indicators <- function(input_df) {
   input_df |> 
-    mutate(int.fcs_cereals_tubers = fs_fcs_cerealgrainroottuber*2,
-           int.fcs_pulses = fs_fcs_beansnuts*3,
-           int.fcs_vegetables = fs_fcs_vegetableleave,
+    mutate(int.fcs_cereals_tubers = fs_fcs_cereals_grains_roots_tubers*2,
+           int.fcs_pulses = fs_fcs_beans_nuts*3,
+           int.fcs_vegetables = fs_fcs_vegetables_leaves,
            int.fcs_fruit = fs_fcs_fruit,
-           int.fcs_meat_fish = fs_fcs_meatfishegg*4,
+           int.fcs_meat_fish = fs_fcs_meat_fish_eggs*4,
            int.fcs_dairy = fs_fcs_dairy*4,
            int.fcs_sugar = fs_fcs_sugar*0.5,
-           int.fcs_oils = fs_fcs_fat*0.5,
+           int.fcs_oils = fs_fcs_oil_fat_butter*0.5,
            int.rCSILessQlty = rCSILessQlty,
            int.rCSIBorrow = 2 * rCSIBorrow,
            int.rCSIMealSize = rCSIMealSize,
@@ -32,7 +33,9 @@ create_composite_indicators <- function(input_df) {
     mutate(int.fcs = sum(c_across(int.fcs_cereals_tubers:int.fcs_oils)),
            int.rcsi = sum(c_across(int.rCSILessQlty:int.rCSIMealNb)),
            int.hhs = sum(c_across(int.freq_no_food_lack_resources:int.freq_day_and_night_no_food)),
-           int.hh_size = sum(c_across(hh_number_men:hh_number_infants), na.rm = T)
+           #int.hh_size = sum(c_across(hh_number_men_count:hh_number_girls_count), na.rm = T),
+           #int.hh_number_male = sum(c_across(c("hh_number_men_count", "hh_number_boys_count")), na.rm = T),
+           #int.hh_number_female = sum(c_across(c("hh_number_women_count", "hh_number_girls_count")), na.rm = T)
            
     ) |>
     ungroup() |>
@@ -50,13 +53,13 @@ create_composite_indicators <- function(input_df) {
                                  i.hhs <= 3 ~ "Moderate",
                                  i.hhs == 4 ~ "Severe",
                                  i.hhs <= 6 ~ "Very severe"),
-           i.hh_composition_size = int.hh_size,
+           #i.hh_composition_size = int.hh_size,
            i.hoh_gender = ifelse(is.na(hoh_gender), respondent_gender, hoh_gender),
            i.hoh_age = ifelse(is.na(hoh_age), respondent_age, hoh_age),
-           i.chronic_illiness_male = case_when(chronic_illiness_male == 0 ~ "no",
-                                               chronic_illiness_male > 0 ~ "yes"), 
-           i.chronic_illiness_female = case_when(chronic_illiness_female == 0 ~ "no",
-                                                 chronic_illiness_female > 0 ~ "yes"), 
+           i.chronic_illness_male = case_when(chronic_illness_male == 0 ~ "no",
+                                              chronic_illness_male > 0 ~ "yes"), 
+           i.chronic_illness_female = case_when(chronic_illness_female == 0 ~ "no",
+                                                chronic_illness_female > 0 ~ "yes"), 
            i.pregnant_lac_women = case_when(pregnant_lac_women == 0 ~ "no",
                                             pregnant_lac_women > 0 ~ "yes"), 
            i.fc_matrix = case_when( 
@@ -180,9 +183,9 @@ create_composite_indicators <- function(input_df) {
                                            i.fc_matrix_fcs_hhs %in% c(10, 14, 15, 25, 29, 35, 39, 40, 44) ~ "Phase 4",
                                            i.fc_matrix_fcs_hhs %in% c(30, 45) ~ "Phase 5"),
     ) |> 
-    addindicators::add_lcsi(lcsi_stress_vars = c("liv_stress_lcsi_1", "liv_stress_lcsi_2", "liv_stress_lcsi_3", "liv_stress_lcsi_4"),
-                            lcsi_crisis_vars = c("liv_crisis_lcsi_1", "liv_crisis_lcsi_2", "liv_crisis_lcsi_3"),
-                            lcsi_emergency_vars = c("liv_emerg_lcsi_1", "liv_emerg_lcsi_2", "liv_emerg_lcsi_3"),
+    addindicators::add_lcsi(lcsi_stress_vars = c("liv_stress_1", "liv_stress_2", "liv_stress_3", "liv_stress_4"),
+                            lcsi_crisis_vars = c("liv_crisis_1", "liv_crisis_2", "liv_crisis_3"),
+                            lcsi_emergency_vars = c("liv_emergency_1", "liv_emergency_2", "liv_emergency_3"),
                             yes_val = "yes",
                             no_val = "no_had_no_need",
                             exhausted_val = "no_exhausted",
@@ -191,3 +194,4 @@ create_composite_indicators <- function(input_df) {
     select(-c(starts_with("int.")))
 }
 
+###############################################################################
