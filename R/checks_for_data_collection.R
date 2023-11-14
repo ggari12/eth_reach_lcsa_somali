@@ -128,7 +128,7 @@ add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_c
 
 # other_specify ---------------------------------------------------------------
 
-df_others_data <- supporteR::extract_other_specify_data(input_tool_data = df_tool_data |> select(-hh_income_other), 
+df_others_data <- supporteR::extract_other_specify_data(input_tool_data = df_tool_data |> select(-hh_income_other, -last30_income_other), 
                                                         input_enumerator_id_col = "enumerator_id",
                                                         input_location_col = "hh_kebele",
                                                         input_survey = df_survey,  
