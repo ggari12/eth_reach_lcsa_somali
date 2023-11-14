@@ -22,8 +22,8 @@ df_tool_data <- readxl::read_excel(data_path) |>
   create_composite_indicators() |> 
   rowwise() |> 
   mutate( 
-    i.hh_tot_income = sum(c_across(last30_income_agriculture_livestock:last30_hh_other_income_amount), na.rm = T),
-    i.tot_expenditure = sum(c_across(expenditure_food:expenditure_other_frequent), na.rm = T),
+    #i.hh_tot_income = sum(c_across(last30_income_agriculture_livestock:last30_hh_other_income_amount), na.rm = T),
+    #i.tot_expenditure = sum(c_across(expenditure_food:expenditure_other_frequent), na.rm = T),
     #int.hh_number_male = sum(c_across(c("hh_number_men_count", "hh_number_boys_count")), na.rm = T),
     #int.hh_number_female = sum(c_across(c("hh_number_women_count", "hh_number_girls_count")), na.rm = T)
   
@@ -128,7 +128,7 @@ add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_c
 
 # other_specify ---------------------------------------------------------------
 
-df_others_data <- supporteR::extract_other_specify_data(input_tool_data = df_tool_data, 
+df_others_data <- supporteR::extract_other_specify_data(input_tool_data = df_tool_data |> select(-hh_income_other), 
                                                         input_enumerator_id_col = "enumerator_id",
                                                         input_location_col = "hh_kebele",
                                                         input_survey = df_survey,  
@@ -377,27 +377,6 @@ df_logic_c_hh_affected_by_flooding_but_not_reports_issue <- df_tool_data |>
   batch_select_rename()
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_affected_by_flooding_but_not_reports_issue")
-
-# extra checks income ---------------------------------------------------------
-
-df_logic_c_expenditure_greater_than_income <- df_tool_data |> 
-  filter(int.tot_expenditure > 2*hh_tot_income) |> 
-  mutate(i.check.type = "change_response",
-         i.check.name = "int.tot_expenditure",
-         i.check.current_value = as.character(int.tot_expenditure),
-         i.check.value = "NA",
-         i.check.issue_id = "logic_c_expenditure_greater_than_income",
-         i.check.issue = glue("expenditure_greater_than_income, int.tot_expenditure: {int.tot_expenditure} but hh_tot_income_amount: {hh_tot_income}"),
-         i.check.other_text = "",
-         i.check.checked_by = "",
-         i.check.checked_date = as_date(today()),
-         i.check.comment = "", 
-         i.check.reviewed = "",
-         i.check.adjust_log = "",
-         i.check.so_sm_choices = "") |> 
-  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
-
-add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_expenditure_greater_than_income")
 
 # check FSL -------------------------------------------------------------------
 
