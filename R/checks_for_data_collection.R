@@ -392,7 +392,7 @@ df_logic_c_hh_affected_by_flooding_but_not_reports_issue <- df_tool_data |>
          i.check.name = "fs_shock_3months",
          i.check.current_value = fs_shock_3months,
          i.check.value = "",
-         i.check.issue_id = "hh_hh_affected_by_flooding_but_not_reports_issue",
+         i.check.issue_id = "hh_affected_by_flooding_but_not_reports_issue",
          i.check.issue = glue("fs_shock_3months: {fs_shock_3months} but hh_floods_affect: {hh_floods_affect}"),
          i.check.other_text = "",
          i.check.checked_by = "",
@@ -406,7 +406,621 @@ df_logic_c_hh_affected_by_flooding_but_not_reports_issue <- df_tool_data |>
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_affected_by_flooding_but_not_reports_issue")
 
+# HH take short time to access the nearest health facility but report barriers:"Health facility is too far away"
+df_logic_c_hh_report_short_time_but_health_facility_far_away <- df_tool_data |> 
+  filter(healthcare_barriers %in% c("health_facility_is_too_far_away"), health_facility_distance < 30) |>
+  mutate(i.check.type = "change_response",
+         i.check.name = "healthcare_barriers",
+         i.check.current_value = healthcare_barriers,
+         i.check.value = "",
+         i.check.issue_id = "hh_report_short_time_but_health_facility_far_away",
+         i.check.issue = glue("healthcare_barriers: { healthcare_barriers } but health_facility_distance: {health_facility_distance}"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  batch_select_rename()|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_report_short_time_but_health_facility_far_away")
+
+#It takes HH short time (less than 30 minutes) to fetch water but from distant water points (too far)
+df_logic_c_short_time_to_fetch_water_but_waterpoints_far <- df_tool_data |> 
+  filter(wash_watertime %in%  c("below_30minutes"), water_coping_strategies %in% c( "fetch_from_distant_water_point")) |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "wash_watertime",
+         i.check.current_value = wash_watertime,
+         i.check.value = "",
+         i.check.issue_id = "short_time_to_fetch_water_but_waterpoints_far",
+         i.check.issue = glue("wash_watertime: {wash_watertime} but water_coping_strategies: {water_coping_strategies}"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  batch_select_rename() |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_short_time_to_fetch_water_but_waterpoints_far")
+
 # check FSL -------------------------------------------------------------------
+# mismatch between FCS and HHS
+df_logic_c_fcs_and_hhs_mismatch <- df_tool_data |> 
+  filter((i.fcs_cat %in% c("Acceptable")), i.hhs_cat %in% c("Severe")) |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "fs_fcs_cereals_grains_roots_tubers",
+         i.check.current_value = as.character(fs_fcs_cereals_grains_roots_tubers),
+         i.check.value = "NA",
+         i.check.issue_id = "logic_c_mismatch_btn_fcs_and_hhs",
+         i.check.issue = "mismatch between FCS and HHS",
+         i.check.other_text = "",
+         i.check.checked_by = "AT",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "",
+         i.check.reviewed = "1",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |>
+  slice(rep(1:n(), each = 15)) |> 
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |> 
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "fs_fcs_cereals_grains_roots_tubers", 
+                                  rank == 2 ~ "fs_fcs_beans_nuts",
+                                  rank == 3 ~ "fs_fcs_vegetables_leaves", 
+                                  rank == 4 ~ "fs_fcs_fruit", 
+                                  rank == 5 ~ "fs_fcs_condiment", 
+                                  rank == 6 ~ "fs_fcs_meat_fish_eggs", 
+                                  rank == 7 ~ "fs_fcs_dairy", 
+                                  rank == 8 ~ "fs_fcs_sugar", 
+                                  rank == 9 ~ "fs_fcs_oil_fat_butter",
+                                  rank == 10 ~ "fs_hhs_nofood",
+                                  rank == 11 ~ "fs_hhs_nofood_freq",
+                                  rank == 12 ~ "fs_hhs_sleephungry",
+                                  rank == 13 ~ "fs_hhs_sleephungry_freq",
+                                  rank == 14 ~ "fs_hhs_daynoteating",
+                                  TRUE ~ "fs_hhs_daynoteating_freq"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(fs_fcs_cereals_grains_roots_tubers),
+                                           rank == 2 ~ as.character(fs_fcs_beans_nuts),
+                                           rank == 3 ~ as.character(fs_fcs_vegetables_leaves), 
+                                           rank == 4 ~ as.character(fs_fcs_fruit), 
+                                           rank == 5 ~ as.character(fs_fcs_condiment), 
+                                           rank == 6 ~ as.character(fs_fcs_meat_fish_eggs), 
+                                           rank == 7 ~ as.character(fs_fcs_dairy), 
+                                           rank == 8 ~ as.character(fs_fcs_sugar), 
+                                           rank == 9 ~ as.character(fs_fcs_oil_fat_butter), 
+                                           rank == 10 ~ as.character(fs_hhs_nofood), 
+                                           rank == 11 ~ as.character(fs_hhs_nofood_freq), 
+                                           rank == 12 ~ as.character(fs_hhs_sleephungry), 
+                                           rank == 13 ~ as.character(fs_hhs_sleephungry_freq), 
+                                           rank == 14 ~ as.character(fs_hhs_daynoteating), 
+                                           TRUE ~ as.character(fs_hhs_daynoteating_freq))
+  ) |> 
+  dplyr::select(starts_with("i.check.")) |>
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = "")) |> 
+  filter(!is.na(current_value))|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_fcs_and_hhs_mismatch")
+
+# - i.hhs_cat[severe] // i.rcsi_cat[0] *** take out all food indicators ***
+df_logic_c_fd_hhs_severe_but_rcsi_low <- df_tool_data |>  
+  filter(i.hhs_cat %in% c("Severe"), i.rcsi_cat %in% c("rcsi_0_3"))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "fs_fcs_cereals_grains_roots_tubers",
+         i.check.current_value = as.character(fs_fcs_cereals_grains_roots_tubers),
+         i.check.value = "NA",
+         i.check.issue_id = "logic_c_fd_hhs_severe_but_rcsi_low",
+         i.check.issue = glue("hhs_severe_but_rcsi_low"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  slice(rep(1:n(), each = 20)) |>  
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |>  
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "fs_fcs_cereals_grains_roots_tubers", 
+                                  rank == 2 ~ "fs_fcs_beans_nuts",
+                                  rank == 3 ~ "fs_fcs_vegetables_leaves", 
+                                  rank == 4 ~ "fs_fcs_fruit", 
+                                  rank == 5 ~ "fs_fcs_condiment", 
+                                  rank == 6 ~ "fs_fcs_meat_fish_eggs", 
+                                  rank == 7 ~ "fs_fcs_dairy", 
+                                  rank == 8 ~ "fs_fcs_sugar", 
+                                  rank == 9~ "fs_fcs_oil_fat_butter", 
+                                  rank == 10 ~ "fs_hhs_nofood", 
+                                  rank == 11 ~ "fs_hhs_nofood_freq", 
+                                  rank == 12 ~ "fs_hhs_sleephungry", 
+                                  rank == 13 ~ "fs_hhs_sleephungry_freq", 
+                                  rank == 14 ~ "fs_hhs_daynoteating", 
+                                  rank == 15 ~ "fs_hhs_daynoteating_freq", 
+                                  rank == 16 ~ "rCSILessQlty", 
+                                  rank == 17 ~ "rCSIMealSize", 
+                                  rank == 18 ~ "rCSIMealAdult", 
+                                  rank == 19 ~ "rCSIMealNb", 
+                                  TRUE ~ "rCSIBorrow"),
+         i.check.value = case_when(i.check.name %in% c("fs_hhs_nofood", 
+                                                       "fs_hhs_sleephungry",
+                                                       "fs_hhs_daynoteating") ~ "0", 
+                                   TRUE ~ i.check.value),
+         i.check.current_value = case_when(rank == 1 ~ as.character(fs_fcs_cereals_grains_roots_tubers),
+                                           rank == 2 ~ as.character(fs_fcs_beans_nuts),
+                                           rank == 3 ~ as.character(fs_fcs_vegetables_leaves), 
+                                           rank == 4 ~ as.character(fs_fcs_fruit), 
+                                           rank == 5 ~ as.character(fs_fcs_condiment), 
+                                           rank == 6 ~ as.character(fs_fcs_meat_fish_eggs), 
+                                           rank == 7 ~ as.character(fs_fcs_dairy), 
+                                           rank == 8 ~ as.character(fs_fcs_sugar), 
+                                           rank == 9 ~ as.character(fs_fcs_oil_fat_butter), 
+                                           rank == 10 ~ as.character(fs_hhs_nofood), 
+                                           rank == 11 ~ as.character(fs_hhs_nofood_freq), 
+                                           rank == 12 ~ as.character(fs_hhs_sleephungry), 
+                                           rank == 13 ~ as.character(fs_hhs_sleephungry_freq), 
+                                           rank == 14 ~ as.character(fs_hhs_daynoteating), 
+                                           rank == 15 ~ as.character(fs_hhs_daynoteating_freq), 
+                                           rank == 16 ~ as.character(rCSILessQlty), 
+                                           rank == 17 ~ as.character(rCSIMealSize), 
+                                           rank == 18 ~ as.character(rCSIMealAdult), 
+                                           rank == 19 ~ as.character(rCSIMealNb), 
+                                           TRUE ~ as.character(rCSIBorrow))
+  ) |> 
+  filter(!is.na(i.check.current_value), !i.check.current_value %in% c("0")) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_fd_hhs_severe_but_rcsi_low")
+
+# - low FCS and low rCSI. fcs [poor] // rcs[0] *** take out all the data **
+df_logic_c_fd_fcs_poor_but_rcsi_low <- df_tool_data |>  
+  filter(i.hhs_cat %in% c("Poor"), i.rcsi_cat %in% c("rcsi_0_3"))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "fs_fcs_cereals_grains_roots_tubers",
+         i.check.current_value = as.character(fs_fcs_cereals_grains_roots_tubers),
+         i.check.value = "NA",
+         i.check.issue_id = "logic_c_fd_hhs_severe_but_rcsi_low",
+         i.check.issue = glue("hhs_severe_but_rcsi_low"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  slice(rep(1:n(), each = 20)) |>  
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |>  
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "fs_fcs_cereals_grains_roots_tubers", 
+                                  rank == 2 ~ "fs_fcs_beans_nuts",
+                                  rank == 3 ~ "fs_fcs_vegetables_leaves", 
+                                  rank == 4 ~ "fs_fcs_fruit", 
+                                  rank == 5 ~ "fs_fcs_condiment", 
+                                  rank == 6 ~ "fs_fcs_meat_fish_eggs", 
+                                  rank == 7 ~ "fs_fcs_dairy", 
+                                  rank == 8 ~ "fs_fcs_sugar", 
+                                  rank == 9~ "fs_fcs_oil_fat_butter", 
+                                  rank == 10 ~ "fs_hhs_nofood", 
+                                  rank == 11 ~ "fs_hhs_nofood_freq", 
+                                  rank == 12 ~ "fs_hhs_sleephungry", 
+                                  rank == 13 ~ "fs_hhs_sleephungry_freq", 
+                                  rank == 14 ~ "fs_hhs_daynoteating", 
+                                  rank == 15 ~ "fs_hhs_daynoteating_freq", 
+                                  rank == 16 ~ "rCSILessQlty", 
+                                  rank == 17 ~ "rCSIMealSize", 
+                                  rank == 18 ~ "rCSIMealAdult", 
+                                  rank == 19 ~ "rCSIMealNb", 
+                                  TRUE ~ "rCSIBorrow"),
+         i.check.value = case_when(i.check.name %in% c("fs_hhs_nofood", 
+                                                       "fs_hhs_sleephungry",
+                                                       "fs_hhs_daynoteating") ~ "0", 
+                                   TRUE ~ i.check.value),
+         i.check.current_value = case_when(rank == 1 ~ as.character(fs_fcs_cereals_grains_roots_tubers),
+                                           rank == 2 ~ as.character(fs_fcs_beans_nuts),
+                                           rank == 3 ~ as.character(fs_fcs_vegetables_leaves), 
+                                           rank == 4 ~ as.character(fs_fcs_fruit), 
+                                           rank == 5 ~ as.character(fs_fcs_condiment), 
+                                           rank == 6 ~ as.character(fs_fcs_meat_fish_eggs), 
+                                           rank == 7 ~ as.character(fs_fcs_dairy), 
+                                           rank == 8 ~ as.character(fs_fcs_sugar), 
+                                           rank == 9 ~ as.character(fs_fcs_oil_fat_butter), 
+                                           rank == 10 ~ as.character(fs_hhs_nofood), 
+                                           rank == 11 ~ as.character(fs_hhs_nofood_freq), 
+                                           rank == 12 ~ as.character(fs_hhs_sleephungry), 
+                                           rank == 13 ~ as.character(fs_hhs_sleephungry_freq), 
+                                           rank == 14 ~ as.character(fs_hhs_daynoteating), 
+                                           rank == 15 ~ as.character(fs_hhs_daynoteating_freq), 
+                                           rank == 16 ~ as.character(rCSILessQlty), 
+                                           rank == 17 ~ as.character(rCSIMealSize), 
+                                           rank == 18 ~ as.character(rCSIMealAdult), 
+                                           rank == 19 ~ as.character(rCSIMealNb), 
+                                           TRUE ~ as.character(rCSIBorrow))
+  ) |> 
+  filter(!is.na(i.check.current_value), !i.check.current_value %in% c("0")) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_fd_fcs_poor_but_rcsi_low")
+
+# - high FCS and high rCSI
+df_logic_c_fd_fcs_acceptable_but_rcsi_high <- df_tool_data |>  
+  filter(i.fcs_cat %in% c("Acceptable"), i.rcsi_cat %in% c("rcsi_19+"))  |>
+  mutate(i.check.type = "change_response",
+         i.check.name = "fs_fcs_cereals_grains_roots_tubers",
+         i.check.current_value = as.character(fs_fcs_cereals_grains_roots_tubers),
+         i.check.value = "NA",
+         i.check.issue_id = "logic_c_fd_hhs_severe_but_rcsi_low",
+         i.check.issue = glue("hhs_severe_but_rcsi_low"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  slice(rep(1:n(), each = 20)) |>  
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |>  
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "fs_fcs_cereals_grains_roots_tubers", 
+                                  rank == 2 ~ "fs_fcs_beans_nuts",
+                                  rank == 3 ~ "fs_fcs_vegetables_leaves", 
+                                  rank == 4 ~ "fs_fcs_fruit", 
+                                  rank == 5 ~ "fs_fcs_condiment", 
+                                  rank == 6 ~ "fs_fcs_meat_fish_eggs", 
+                                  rank == 7 ~ "fs_fcs_dairy", 
+                                  rank == 8 ~ "fs_fcs_sugar", 
+                                  rank == 9~ "fs_fcs_oil_fat_butter", 
+                                  rank == 10 ~ "fs_hhs_nofood", 
+                                  rank == 11 ~ "fs_hhs_nofood_freq", 
+                                  rank == 12 ~ "fs_hhs_sleephungry", 
+                                  rank == 13 ~ "fs_hhs_sleephungry_freq", 
+                                  rank == 14 ~ "fs_hhs_daynoteating", 
+                                  rank == 15 ~ "fs_hhs_daynoteating_freq", 
+                                  rank == 16 ~ "rCSILessQlty", 
+                                  rank == 17 ~ "rCSIMealSize", 
+                                  rank == 18 ~ "rCSIMealAdult", 
+                                  rank == 19 ~ "rCSIMealNb", 
+                                  TRUE ~ "rCSIBorrow"),
+         i.check.value = case_when(i.check.name %in% c("fs_hhs_nofood", 
+                                                       "fs_hhs_sleephungry",
+                                                       "fs_hhs_daynoteating") ~ "0", 
+                                   TRUE ~ i.check.value),
+         i.check.current_value = case_when(rank == 1 ~ as.character(fs_fcs_cereals_grains_roots_tubers),
+                                           rank == 2 ~ as.character(fs_fcs_beans_nuts),
+                                           rank == 3 ~ as.character(fs_fcs_vegetables_leaves), 
+                                           rank == 4 ~ as.character(fs_fcs_fruit), 
+                                           rank == 5 ~ as.character(fs_fcs_condiment), 
+                                           rank == 6 ~ as.character(fs_fcs_meat_fish_eggs), 
+                                           rank == 7 ~ as.character(fs_fcs_dairy), 
+                                           rank == 8 ~ as.character(fs_fcs_sugar), 
+                                           rank == 9 ~ as.character(fs_fcs_oil_fat_butter), 
+                                           rank == 10 ~ as.character(fs_hhs_nofood), 
+                                           rank == 11 ~ as.character(fs_hhs_nofood_freq), 
+                                           rank == 12 ~ as.character(fs_hhs_sleephungry), 
+                                           rank == 13 ~ as.character(fs_hhs_sleephungry_freq), 
+                                           rank == 14 ~ as.character(fs_hhs_daynoteating), 
+                                           rank == 15 ~ as.character(fs_hhs_daynoteating_freq), 
+                                           rank == 16 ~ as.character(rCSILessQlty), 
+                                           rank == 17 ~ as.character(rCSIMealSize), 
+                                           rank == 18 ~ as.character(rCSIMealAdult), 
+                                           rank == 19 ~ as.character(rCSIMealNb), 
+                                           TRUE ~ as.character(rCSIBorrow))
+  ) |> 
+  filter(!is.na(i.check.current_value), !i.check.current_value %in% c("0")) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_fd_fcs_acceptable_but_rcsi_high")
+
+# LCSI ------------------------------------------------------------------------
+# lcsi_stress_c1
+df_logic_c_lcsi_stress_c1 <- df_tool_data |>  
+  filter(liv_stress_1 %in% c("no_exhausted"), 
+         liv_stress_2 %in% c("no_had_no_need"),
+         liv_stress_3 %in% c("no_had_no_need"))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_stress_1",
+         i.check.current_value = as.character(liv_stress_1),
+         i.check.value = "NA",
+         i.check.issue_id = "logic_c_lcsi_stress_c1",
+         i.check.issue = glue("lcsi_stress_c1"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  slice(rep(1:n(), each = 10)) |>  
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |>  
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "liv_stress_1", 
+                                  rank == 2 ~ "liv_stress_2",
+                                  rank == 3 ~ "liv_stress_3", 
+                                  rank == 4 ~ "liv_stress_4", 
+                                  rank == 5 ~ "liv_crisis_1", 
+                                  rank == 6 ~ "liv_crisis_2", 
+                                  rank == 7 ~ "liv_crisis_3", 
+                                  rank == 8 ~ "liv_emergency_1", 
+                                  rank == 9 ~ "liv_emergency_2", 
+                                  TRUE ~ "liv_emergency_3"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(liv_stress_1),
+                                           rank == 2 ~ as.character(liv_stress_2),
+                                           rank == 3 ~ as.character(liv_stress_3), 
+                                           rank == 4 ~ as.character(liv_stress_4), 
+                                           rank == 5 ~ as.character(liv_crisis_1), 
+                                           rank == 6 ~ as.character(liv_crisis_2), 
+                                           rank == 7 ~ as.character(liv_crisis_3), 
+                                           rank == 8 ~ as.character(liv_emergency_1), 
+                                           rank == 9 ~ as.character(liv_emergency_2), 
+                                           TRUE ~ as.character(liv_emergency_3))
+  ) |> 
+  filter(!is.na(i.check.current_value)) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_stress_c1")
+
+# lcsi_stress_c2
+df_logic_c_lcsi_stress_c2 <- df_tool_data |>  
+  filter(liv_stress_1 %in% c("no_exhausted"), 
+         liv_stress_2 %in% c("no_had_no_need"),
+         liv_stress_3 %in% c("no_had_no_need"))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_stress_1",
+         i.check.current_value = as.character(liv_stress_1),
+         i.check.value = "NA",
+         i.check.issue_id = "logic_c_lcsi_stress_c2",
+         i.check.issue = glue("lcsi_stress_c2"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  slice(rep(1:n(), each = 10)) |>  
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |>  
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "liv_stress_1", 
+                                  rank == 2 ~ "liv_stress_2",
+                                  rank == 3 ~ "liv_stress_3", 
+                                  rank == 4 ~ "liv_stress_4", 
+                                  rank == 5 ~ "liv_crisis_1", 
+                                  rank == 6 ~ "liv_crisis_2", 
+                                  rank == 7 ~ "liv_crisis_3", 
+                                  rank == 8 ~ "liv_emergency_1", 
+                                  rank == 9 ~ "liv_emergency_2", 
+                                  TRUE ~ "liv_emergency_3"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(liv_stress_1),
+                                           rank == 2 ~ as.character(liv_stress_2),
+                                           rank == 3 ~ as.character(liv_stress_3), 
+                                           rank == 4 ~ as.character(liv_stress_4), 
+                                           rank == 5 ~ as.character(liv_crisis_1), 
+                                           rank == 6 ~ as.character(liv_crisis_2), 
+                                           rank == 7 ~ as.character(liv_crisis_3), 
+                                           rank == 8 ~ as.character(liv_emergency_1), 
+                                           rank == 9 ~ as.character(liv_emergency_2), 
+                                           TRUE ~ as.character(liv_emergency_3))
+  ) |> 
+  filter(!is.na(i.check.current_value)) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_stress_c2")
+
+# lcsi_stress_c3
+df_logic_c_lcsi_stress_c3 <- df_tool_data |>  
+  filter(liv_stress_1 %in% c("no_had_no_need"), 
+         liv_stress_2 %in% c("no_exhausted"),
+         liv_stress_3 %in% c("no_had_no_need"),
+         liv_emergency_1 %in% c("no_exhausted"))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_stress_1",
+         i.check.current_value = as.character(liv_stress_1),
+         i.check.value = "NA",
+         i.check.issue_id = "logic_c_lcsi_stress_c3",
+         i.check.issue = glue("lcsi_stress_c3"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  slice(rep(1:n(), each = 10)) |>  
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |>  
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "liv_stress_1", 
+                                  rank == 2 ~ "liv_stress_2",
+                                  rank == 3 ~ "liv_stress_3", 
+                                  rank == 4 ~ "liv_stress_4", 
+                                  rank == 5 ~ "liv_crisis_1", 
+                                  rank == 6 ~ "liv_crisis_2", 
+                                  rank == 7 ~ "liv_crisis_3", 
+                                  rank == 8 ~ "liv_emergency_1", 
+                                  rank == 9 ~ "liv_emergency_2", 
+                                  TRUE ~ "liv_emergency_3"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(liv_stress_1),
+                                           rank == 2 ~ as.character(liv_stress_2),
+                                           rank == 3 ~ as.character(liv_stress_3), 
+                                           rank == 4 ~ as.character(liv_stress_4), 
+                                           rank == 5 ~ as.character(liv_crisis_1), 
+                                           rank == 6 ~ as.character(liv_crisis_2), 
+                                           rank == 7 ~ as.character(liv_crisis_3), 
+                                           rank == 8 ~ as.character(liv_emergency_1), 
+                                           rank == 9 ~ as.character(liv_emergency_2), 
+                                           TRUE ~ as.character(liv_emergency_3))
+  ) |> 
+  filter(!is.na(i.check.current_value)) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_stress_c3")
+
+# lcsi_stress_c4
+df_logic_c_lcsi_stress4_but_no_emergency_c4 <- df_tool_data |>  
+  filter(liv_stress_4 %in% c("no_exhausted"), 
+         liv_emergency_2 %in% c("not_applicable"))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_stress_1",
+         i.check.current_value = as.character(liv_stress_1),
+         i.check.value = "NA",
+         i.check.issue_id = "logic_c_lcsi_stress4_but_no_emergency_c4",
+         i.check.issue = glue("lcsi_stress4_but_no_emergency"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  slice(rep(1:n(), each = 10)) |>  
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |>  
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "liv_stress_1", 
+                                  rank == 2 ~ "liv_stress_2",
+                                  rank == 3 ~ "liv_stress_3", 
+                                  rank == 4 ~ "liv_stress_4", 
+                                  rank == 5 ~ "liv_crisis_1", 
+                                  rank == 6 ~ "liv_crisis_2", 
+                                  rank == 7 ~ "liv_crisis_3", 
+                                  rank == 8 ~ "liv_emergency_1", 
+                                  rank == 9 ~ "liv_emergency_2", 
+                                  TRUE ~ "liv_emergency_3"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(liv_stress_1),
+                                           rank == 2 ~ as.character(liv_stress_2),
+                                           rank == 3 ~ as.character(liv_stress_3), 
+                                           rank == 4 ~ as.character(liv_stress_4), 
+                                           rank == 5 ~ as.character(liv_crisis_1), 
+                                           rank == 6 ~ as.character(liv_crisis_2), 
+                                           rank == 7 ~ as.character(liv_crisis_3), 
+                                           rank == 8 ~ as.character(liv_emergency_1), 
+                                           rank == 9 ~ as.character(liv_emergency_2), 
+                                           TRUE ~ as.character(liv_emergency_3))
+  ) |> 
+  filter(!is.na(i.check.current_value)) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_stress4_but_no_emergency_c4")
+
+# lcsi_stress_c5
+df_logic_c_lcsi_no_stress4_but_emergency2_c5 <- df_tool_data |>  
+  filter(liv_stress_4 %in% c("no_had_no_need", "not_applicable"), 
+         liv_emergency_2 %in% c("yes", "no_exhausted"))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_emergency_2",
+         i.check.current_value = as.character(liv_emergency_2),
+         i.check.value = "not_applicable",
+         i.check.issue_id = "logic_c_lcsi_no_stress4_but_emergency2_c5",
+         i.check.issue = glue("no stress4 but emergency2"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  filter(!is.na(i.check.current_value)) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")  |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_no_stress4_but_emergency2_c5")
+  
+# lcsi_stress_c6
+df_logic_c_lcsi_no_stress_but_crisis_emergency_c6 <- df_tool_data |>  
+  filter(liv_stress_1 %in% c("no_had_no_need", "not_applicable"), 
+         liv_stress_2 %in% c("no_had_no_need", "not_applicable"),
+         liv_stress_3 %in% c("no_had_no_need", "not_applicable"),
+         liv_stress_4 %in% c("no_had_no_need", "not_applicable"),
+         (liv_crisis_1 %in% c("yes", "no_exhausted")|liv_crisis_2 %in% c("yes", "no_exhausted")|liv_crisis_3 %in% c("yes", "no_exhausted")|
+            liv_emergency_1 %in% c("yes", "no_exhausted")|liv_emergency_2 %in% c("yes", "no_exhausted")|liv_emergency_3 %in% c("yes", "no_exhausted")))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_stress_1",
+         i.check.current_value = as.character(liv_stress_1),
+         i.check.value = "not_applicable",
+         i.check.issue_id = "logic_c_lcsi_no_stress_but_crisis_emergency_c6",
+         i.check.issue = glue("No stress reported but crisis and emergency"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  slice(rep(1:n(), each = 6)) |>  
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |>  
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "liv_crisis_1", 
+                                  rank == 2 ~ "liv_crisis_2", 
+                                  rank == 3 ~ "liv_crisis_3", 
+                                  rank == 4 ~ "liv_emergency_1", 
+                                  rank == 5 ~ "liv_emergency_2", 
+                                  TRUE ~ "livh_emerg_lcsi_3"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(liv_crisis_1), 
+                                           rank == 2 ~ as.character(liv_crisis_2), 
+                                           rank == 3 ~ as.character(liv_crisis_3), 
+                                           rank == 4 ~ as.character(liv_emergency_1), 
+                                           rank == 5 ~ as.character(liv_emergency_2), 
+                                           TRUE ~ as.character(liv_emergency_3))
+  ) |> 
+  filter(!i.check.current_value %in% c("no_had_no_need", "not_applicable")) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_no_stress_but_crisis_emergency_c6")
+
+# lcsi_stress_c7
+df_logic_c_lcsi_no_livestock_but_stress4_c7 <- df_tool_data |>  
+  filter(hh_own_livestock %in% c("no"), 
+         liv_stress_4 %in% c("yes"))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_stress_4",
+         i.check.current_value = as.character(liv_stress_4),
+         i.check.value = "no_exhausted",
+         i.check.issue_id = "logic_c_lcsi_no_livestock_but_stress4_c7",
+         i.check.issue = glue("livestock but stress4"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  filter(!is.na(i.check.current_value)) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_no_livestock_but_stress4_c7")
+
+# lcsi_stress_c8
+df_logic_c_lcsi_no_livestock_but_emergency2_c8 <- df_tool_data |>  
+  filter(hh_own_livestock %in% c("no"), 
+         liv_emergency_2 %in% c("yes"))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_emergency_2",
+         i.check.current_value = as.character(liv_emergency_2),
+         i.check.value = "no_exhausted",
+         i.check.issue_id = "logic_c_lcsi_no_livestock_but_emergency2_c8",
+         i.check.issue = glue("livestock but emergency2"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  filter(!is.na(i.check.current_value)) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_no_livestock_but_emergency2_c8")
 
 # combined  checks ------------------------------------------------------------
 
