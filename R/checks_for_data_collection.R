@@ -73,7 +73,8 @@ df_testing_data <- df_tool_data |>
          i.check.adjust_log = "",
          i.check.so_sm_choices = "") |> 
   dplyr::select(starts_with("i.check.")) |> 
-  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = ""))
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = "")) |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_testing_data")
 
@@ -94,7 +95,8 @@ df_logic_c_enumerator_id_harmonization <- df_tool_data |>
          i.check.reviewed = "1",
          i.check.adjust_log = "",
          i.check.so_sm_choices = "") |> 
-  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_enumerator_id_harmonization")
 
@@ -108,13 +110,15 @@ df_c_survey_time <-  supporteR::check_survey_time(input_tool_data = df_tool_data
                                                   input_enumerator_id_col = "enumerator_id",
                                                   input_location_col = "hh_kebele",
                                                   input_min_time = min_time_of_survey, 
-                                                  input_max_time = max_time_of_survey)
+                                                  input_max_time = max_time_of_survey) |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_c_survey_time")
 
 # check duplicate uuids -------------------------------------------------------
 
-df_c_duplicate_uuid <-  supporteR::checks_duplicate_uuids(input_tool_data = df_tool_data)
+df_c_duplicate_uuid <-  supporteR::checks_duplicate_uuids(input_tool_data = df_tool_data) |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_c_duplicate_uuid")
 
@@ -122,7 +126,8 @@ add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_c
 
 df_c_outliers <- supporteR::check_outliers_cleaninginspector(input_tool_data = df_tool_data,
                                                              input_enumerator_id_col = "enumerator_id",
-                                                             input_location_col = "hh_kebele")
+                                                             input_location_col = "hh_kebele") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_c_outliers")
 
@@ -132,9 +137,22 @@ df_others_data <- supporteR::extract_other_specify_data(input_tool_data = df_too
                                                         input_enumerator_id_col = "enumerator_id",
                                                         input_location_col = "hh_kebele",
                                                         input_survey = df_survey,  
-                                                        input_choices = df_choices)
+                                                        input_choices = df_choices) |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_others_data")
+
+# repeat_other_specify --------------------------------------------------------
+
+df_repeat_others_data <- supporteR::extract_other_specify_data_repeats(input_repeat_data = df_raw_data_loop_hh_health |> mutate(`_index.y` = `_index`), 
+                                                                       input_enumerator_id_col = "enumerator_id", 
+                                                                       input_location_col = "hh_kebele", 
+                                                                       input_survey = df_survey, 
+                                                                       input_choices = df_choices, 
+                                                                       input_sheet_name = "health_loop", 
+                                                                       input_repeat_cols = c("health_unmet_need_type", "healthcare_seek")) |> 
+  mutate(hh_kebele = as.character(index))
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_repeat_others_data")
 
 # logical checks --------------------------------------------------------------
 # chronic_illness_male
@@ -154,7 +172,8 @@ df_logic_c_chronic_illness_male <- df_tool_data |>
          i.check.adjust_log = "",
          i.check.so_sm_choices = "") |> 
   filter(!is.na(i.check.current_value)) |> 
-  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_chronic_illness_male")
 
@@ -175,7 +194,8 @@ df_logic_c_chronic_illness_female <- df_tool_data |>
          i.check.adjust_log = "",
          i.check.so_sm_choices = "") |> 
   filter(!is.na(i.check.current_value)) |> 
-  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_chronic_illness_female")
 
@@ -196,7 +216,8 @@ df_logic_c_pregnant_lac_women <- df_tool_data |>
          i.check.adjust_log = "",
          i.check.so_sm_choices = "") |> 
   filter(!is.na(i.check.current_value)) |> 
-  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_pregnant_lac_women")
 
@@ -216,7 +237,8 @@ df_logic_c_pop_from_idp_but_not_describe_hh_situation <- df_tool_data |>
          i.check.reviewed = "",
          i.check.adjust_log = "",
          i.check.so_sm_choices = "")  |> 
-  batch_select_rename()
+  batch_select_rename() |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_pop_from_idp_but_not_describe_hh_situation")
 
@@ -236,7 +258,8 @@ df_logic_c_sell_livestock_but_not_owning_any_livestock <- df_tool_data |>
          i.check.reviewed = "",
          i.check.adjust_log = "",
          i.check.so_sm_choices = "")  |> 
-  batch_select_rename()
+  batch_select_rename() |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_sell_livestock_but_not_owning_any_livestock")
 
@@ -256,7 +279,8 @@ df_logic_c_sell_female_animal_but_not_owning_any_livestock <- df_tool_data |>
          i.check.reviewed = "",
          i.check.adjust_log = "",
          i.check.so_sm_choices = "")  |> 
-  batch_select_rename()
+  batch_select_rename() |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_sell_female_animal_but_not_owning_any_livestock")
 
@@ -299,7 +323,8 @@ df_fd_consumption_score_same <- df_tool_data |>
                                            rank == 8 ~ as.character(fs_fcs_sugar), 
                                            TRUE ~ as.character(fs_fcs_oil_fat_butter))
   ) |> 
-  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_fd_consumption_score_same")
 
@@ -334,7 +359,8 @@ df_fd_rcsi_same <- df_tool_data |>
                                            rank == 4 ~ as.character(rCSIMealNb), 
                                            TRUE ~ as.character(rCSIBorrow))
   ) |> 
-  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "")
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_fd_rcsi_same")
 
@@ -354,7 +380,8 @@ df_logic_c_hh_exprience_shocks_but_not_shocks_affected_household <- df_tool_data
          i.check.reviewed = "",
          i.check.adjust_log = "",
          i.check.so_sm_choices = "")  |> 
-  batch_select_rename()
+  batch_select_rename() |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_exprience_shocks_but_not_shocks_affected_household")
 
@@ -374,7 +401,8 @@ df_logic_c_hh_affected_by_flooding_but_not_reports_issue <- df_tool_data |>
          i.check.reviewed = "",
          i.check.adjust_log = "",
          i.check.so_sm_choices = "")  |> 
-  batch_select_rename()
+  batch_select_rename() |> 
+  mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_affected_by_flooding_but_not_reports_issue")
 
