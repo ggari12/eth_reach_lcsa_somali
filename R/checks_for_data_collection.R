@@ -427,7 +427,7 @@ df_logic_c_hh_report_short_time_but_health_facility_far_away <- df_tool_data |>
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_report_short_time_but_health_facility_far_away")
 
-#It takes HH short time (less than 30 minutes) to fetch water but from distant water points (too far)
+# It takes HH short time (less than 30 minutes) to fetch water but from distant water points (too far)
 df_logic_c_short_time_to_fetch_water_but_waterpoints_far <- df_tool_data |> 
   filter(wash_watertime %in%  c("below_30minutes"), water_coping_strategies %in% c( "fetch_from_distant_water_point")) |> 
   mutate(i.check.type = "change_response",

@@ -1,7 +1,7 @@
 ---
- title: "ETH LCSA Somali: Data Collection Tracker"
+title: "ETH LCSA Somali: Data Collection Tracker"
 author: "REACH"
-  date: "Novomber 2023"
+date: "Novomber 2023"
 output:
     html_document:
     toc: true
@@ -11,7 +11,7 @@ smooth_scroll: false
 knit: (function(inputFile, encoding) { rmarkdown::render(inputFile, encoding = encoding, output_file = paste0(dirname(inputFile), '/eth_lcsa_somali_data_collection_tracker_', format(Sys.Date(), '%Y_%m_%d'),'.html')) })
 ---
     
-    ```{r setup, include=FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 
 # read packages
@@ -88,8 +88,8 @@ df_cl_surveys_for_deletion <- df_cl_deletion |>
     summarise(surveys_for_deletion = n())
 
 # sample data
-df_samples_required <- readxl::read_excel("../support_files/eth_lcsa_sample_size_somali.xlsx") |> 
-    select(kebele, required_samples = tot_sample_size)
+df_samples_required <- readxl::read_excel("../support_files/lcsa_sample_size.xlsx") |> 
+    select(hh_kebele, required_samples = tot_sample_size)
 
 # tool
 loc_tool <- "../inputs/REACH_ETH_LCSA_Somali_tool.xlsx"
@@ -102,11 +102,9 @@ df_choices <- readxl::read_excel(loc_tool, sheet = "choices") |>
 df_zone_info <- df_choices |> 
   filter(list_name %in% c("zone")) |> 
   select(code, zone = label)
-
 df_woreda_info <- df_choices |> 
   filter(list_name %in% c("woreda")) |> 
   select(code, woreda = label)
-
 df_kebele_info <- df_choices |> 
   filter(list_name %in% c("kebele")) |> 
   select(code, kebele = label)
@@ -151,12 +149,12 @@ Last date of data collection: **`r df_days_for_data_collection[length(df_days_fo
 df_samp_per_location <- df_samples_required
 
 df_updated_tool_data |> 
-    group_by(hh_kebele, pop_group) |> 
+    group_by(hh_kebele) |> 
     summarise(number_of_surveys = n()) |> 
-    arrange(pop_group) |> 
-    full_join(df_samp_per_location, by = c("pop_group" = "pop_group")) |>
+    arrange(hh_kebele) |> 
+    full_join(df_samp_per_location, by = c("hh_kebele" = "hh_kebele")) |>
     mutate(required_samples = ifelse(is.na(required_samples), 0, required_samples)) |> 
-    left_join(df_cl_surveys_for_deletion, by = "pop_group") |> 
+    left_join(df_cl_surveys_for_deletion, by = "hh_kebele") |> 
     mutate(number_of_surveys = ifelse(is.na(number_of_surveys), 0, number_of_surveys),
            surveys_for_deletion = ifelse(is.na(surveys_for_deletion), 0, surveys_for_deletion),
            int.surveys_and_deletion = number_of_surveys - surveys_for_deletion,
@@ -166,7 +164,6 @@ df_updated_tool_data |>
 
 ```
 
-
 ### Daily enumerator performance
 
 The average survey time for all the data is: **`r get_average_survey_time(df_updated_tool_data)`** Minutes
@@ -175,17 +172,8 @@ The average survey time for all the data is: **`r get_average_survey_time(df_upd
 df_enum_performance |> 
   group_by(hh_zone, hh_woreda, hh_kebele, start_date, enumerator_id) |> 
   summarise(number_of_interviews_done = n(), `average_survey_time(minutes)` = round(mean(int.survey_time_interval, na.rm = TRUE), 0)) |> 
-  left_join(df_zone_info, by = c("hh_zone" = "code")) |> 
-  relocate(zone, .after = hh_zone) |> 
-  left_join(df_woreda_info, by = c("hh_woreda" = "code")) |> 
-  relocate(woreda, .after = hh_woreda) |>
-  left_join(df_kebele_info, by = c("hh_kebele" = "code")) |> 
-  relocate(kebele, .after = hh_kebele) |>
-  ungroup() |> 
-  select(-c(hh_zone, hh_woreda, hh_kebele)) |> 
   dt_options_fewcols()
 ```
-
 
 ## Looking into the cleaning log
 
@@ -201,7 +189,6 @@ df_cl_log |>
     # select(-c(int.issue_id, check_description))  |> 
     dt_options_fewcols()
 ```
-
 
 ### Number of issues by enumerator
 
@@ -234,7 +221,6 @@ df_cl_log |>
     summarise(number_of_surveys_for_deletion_by_enumerator = n()) |>
     dt_options_fewcols()
 ```
-
 
 ### Map of surveys for deletion
 
