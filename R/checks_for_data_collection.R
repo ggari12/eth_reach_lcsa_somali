@@ -152,9 +152,31 @@ df_repeat_others_data <- supporteR::extract_other_specify_data_repeats(input_rep
                                                                        input_sheet_name = "health_loop", 
                                                                        input_repeat_cols = c("health_unmet_need_type", "healthcare_seek")) |> 
   mutate(hh_kebele = as.character(index))
+
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_repeat_others_data")
 
 # logical checks --------------------------------------------------------------
+# The age of the hoh seems too high (80 years old or higher), please check the age of the hoh again.
+df_logic_c_hoh_age_seems_too_high <- df_tool_data |> 
+  filter(hoh %in% c("no"), hoh_age >= 80) |>
+  mutate(i.check.type = "change_response",
+         i.check.name = "hoh",
+         i.check.current_value = hoh,
+         i.check.value = "",
+         i.check.issue_id = "hoh_age_seems_too_high",
+         i.check.issue = glue("hoh: {hoh} but hoh_age:{hoh_age}"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  batch_select_rename() |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hoh_age_seems_too_high")
+
 # chronic_illness_male
 df_logic_c_chronic_illness_male <- df_tool_data |> 
   filter(chronic_illness_male  > hh_male_count) |> 
@@ -414,7 +436,7 @@ df_logic_c_hh_report_short_time_but_health_facility_far_away <- df_tool_data |>
          i.check.current_value = healthcare_barriers,
          i.check.value = "",
          i.check.issue_id = "hh_report_short_time_but_health_facility_far_away",
-         i.check.issue = glue("healthcare_barriers: { healthcare_barriers } but health_facility_distance: {health_facility_distance}"),
+         i.check.issue = glue("healthcare_barriers: {healthcare_barriers} but health_facility_distance: {health_facility_distance}"),
          i.check.other_text = "",
          i.check.checked_by = "",
          i.check.checked_date = as_date(today()),
@@ -435,7 +457,7 @@ df_logic_c_short_time_to_fetch_water_but_waterpoints_far <- df_tool_data |>
          i.check.current_value = wash_watertime,
          i.check.value = "",
          i.check.issue_id = "short_time_to_fetch_water_but_waterpoints_far",
-         i.check.issue = glue("wash_watertime: {wash_watertime} but water_coping_strategies: {water_coping_strategies}"),
+         i.check.issue = glue("wash_watertime:{wash_watertime} but water_coping_strategies:{water_coping_strategies}"),
          i.check.other_text = "",
          i.check.checked_by = "",
          i.check.checked_date = as_date(today()),
@@ -447,6 +469,27 @@ df_logic_c_short_time_to_fetch_water_but_waterpoints_far <- df_tool_data |>
   mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_short_time_to_fetch_water_but_waterpoints_far")
+
+# It has been reported that the household is sharing sanitation facilities with a very high number of households
+df_logic_c_hh_share_sanitation_facility_with_high_number <- df_tool_data |> 
+  filter(wash_sanitationsharing %in% c("yes"), wash_sanitationsharing_number >= 50) |>
+  mutate(i.check.type = "change_response",
+         i.check.name = "wash_sanitationsharing",
+         i.check.current_value = wash_sanitationsharing,
+         i.check.value = "",
+         i.check.issue_id = "hh_share_sanitation_facility_with_high_number",
+         i.check.issue = glue("wash_sanitationsharing: {wash_sanitationsharing} but wash_sanitationsharing_number:{wash_sanitationsharing_number}"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  batch_select_rename() |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_share_sanitation_facility_with_high_number")
 
 # check FSL -------------------------------------------------------------------
 # mismatch between FCS and HHS
@@ -533,7 +576,7 @@ df_logic_c_fd_hhs_severe_but_rcsi_low <- df_tool_data |>
                                   rank == 6 ~ "fs_fcs_meat_fish_eggs", 
                                   rank == 7 ~ "fs_fcs_dairy", 
                                   rank == 8 ~ "fs_fcs_sugar", 
-                                  rank == 9~ "fs_fcs_oil_fat_butter", 
+                                  rank == 9 ~ "fs_fcs_oil_fat_butter", 
                                   rank == 10 ~ "fs_hhs_nofood", 
                                   rank == 11 ~ "fs_hhs_nofood_freq", 
                                   rank == 12 ~ "fs_hhs_sleephungry", 
@@ -604,7 +647,7 @@ df_logic_c_fd_fcs_poor_but_rcsi_low <- df_tool_data |>
                                   rank == 6 ~ "fs_fcs_meat_fish_eggs", 
                                   rank == 7 ~ "fs_fcs_dairy", 
                                   rank == 8 ~ "fs_fcs_sugar", 
-                                  rank == 9~ "fs_fcs_oil_fat_butter", 
+                                  rank == 9 ~ "fs_fcs_oil_fat_butter", 
                                   rank == 10 ~ "fs_hhs_nofood", 
                                   rank == 11 ~ "fs_hhs_nofood_freq", 
                                   rank == 12 ~ "fs_hhs_sleephungry", 
