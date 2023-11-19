@@ -137,12 +137,34 @@ dt_options_fewcols <- function(x){
 Surveys for deletion: **`r nrow(df_cl_deletion)`**,\
 Last date of data collection: **`r df_days_for_data_collection[length(df_days_for_data_collection)]`**.
 
-### Summary on the surveys per location
+### Summary on the surveys per location by population group
+
+### Host community: **`r df_updated_tool_data %>% filter(pop_group == "host") %>% nrow()`** surveys
 
 ```{r, echo = FALSE}
 df_samp_per_location <- df_samples_required
 df_updated_tool_data |> 
-    #filter(pop_group == "host") |> 
+    filter(pop_group == "host") |> 
+    group_by(hh_kebele) |> 
+    summarise(number_of_surveys = n()) |> 
+    arrange(hh_kebele) |> 
+    full_join(df_samp_per_location, by = c("hh_kebele" = "hh_kebele")) |>
+    mutate(required_samples = ifelse(is.na(required_samples), 0, required_samples)) |> 
+    left_join(df_cl_surveys_for_deletion, by = "hh_kebele") |> 
+    mutate(number_of_surveys = ifelse(is.na(number_of_surveys), 0, number_of_surveys),
+           surveys_for_deletion = ifelse(is.na(surveys_for_deletion), 0, surveys_for_deletion),
+           int.surveys_and_deletion = number_of_surveys - surveys_for_deletion,
+           remaining_surveys = required_samples - int.surveys_and_deletion ) |> 
+    select(-c(int.surveys_and_deletion)) |> 
+    dt_options_fewcols()
+```
+
+### IDP community: **`r df_updated_tool_data %>% filter(pop_group == "idp") %>% nrow()`** surveys
+
+```{r, echo = FALSE}
+df_samp_per_location <- df_samples_required
+df_updated_tool_data |> 
+    filter(pop_group == "idp") |> 
     group_by(hh_kebele) |> 
     summarise(number_of_surveys = n()) |> 
     arrange(hh_kebele) |> 

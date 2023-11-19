@@ -96,7 +96,7 @@ df_main_and_audit_times <- df_audit_data |>
 
 openxlsx::write.xlsx(x = df_audit_data,
                      file = paste0("outputs/", butteR::date_file_prefix(), 
-                                   "_audit_raw_data_land_energy.xlsx"), 
+                                   "_audit_raw_data_lcsa.xlsx"), 
                      overwrite = TRUE, keepNA = TRUE, na.string = "")
 
 # formatting --------------------------------------------------------------
@@ -190,7 +190,7 @@ df_extra_audit_log <- df_main_and_audit_times |>
   mutate(i.check.uuid = audit_uuid,
          i.check.start_date = start_date,
          i.check.enumerator_id = as.character(enumerator_id),
-         i.check.district_name = district_name,
+         i.check.district_name = hh_kebele,
          i.check.point_number = point_number,
          i.check.type = "remove_survey",
          i.check.name = "",

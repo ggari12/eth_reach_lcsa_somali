@@ -58,7 +58,7 @@ checks_output <- list()
 # testing data ----------------------------------------------------------------
 
 df_testing_data <- df_tool_data |> 
-  filter(i.check.start_date < as_date("2023-11-10")) |> 
+  filter(i.check.start_date < as_date("2023-11-11")) |> 
   mutate(i.check.type = "remove_survey",
          i.check.name = "",
          i.check.current_value = "",
@@ -156,6 +156,28 @@ df_repeat_others_data <- supporteR::extract_other_specify_data_repeats(input_rep
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_repeat_others_data")
 
 # logical checks --------------------------------------------------------------
+# Household size seems to be unusually low (below 2) or high (above 8); survey needs to be checked
+df_logic_c_hh_size_seems_unusal <- df_tool_data |> 
+  filter(hh_size <= 2 | hh_size > 8) |> 
+  mutate(i.check.type = "remove_survey",
+         i.check.name = "hh_size",
+         i.check.current_value = as.character(hh_size),
+         i.check.value = "",
+         i.check.issue_id = "hh_size_seems_unusal",
+         i.check.issue = "household size seems unusal",
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "care to be taken in deciding how to use this data", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  dplyr::select(starts_with("i.check.")) |> 
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = "")) |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_size_seems_unusal")
+
 # The age of the hoh seems too high (80 years old or higher), please check the age of the hoh again.
 df_logic_c_hoh_age_seems_too_high <- df_tool_data |> 
   filter(hoh %in% c("no"), hoh_age >= 80) |>
@@ -264,6 +286,28 @@ df_logic_c_pop_from_idp_but_not_describe_hh_situation <- df_tool_data |>
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_pop_from_idp_but_not_describe_hh_situation")
 
+# If hh_size = 1 and respondent does not live in the house i.e. none, survey needs to be checked
+df_logic_c_live_in_house_and_hh_size <- df_tool_data %>% 
+  filter(hh_member_currently_notliving_with_family %in% c("none") , hh_size == 1) %>%
+  mutate(i.check.type = "change_response",
+         i.check.name = "hh_member_currently_notliving_with_family",
+         i.check.current_value = hh_member_currently_notliving_with_family,
+         i.check.value = "",
+         i.check.issue_id = "logic_c_hh_size_and_live_in_house_mismatch",
+         i.check.issue = glue("hh_size: {hh_size}, but respondent does not live in the house i.e. hh_member_currently_notliving_with_family: {hh_member_currently_notliving_with_family}"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |>  
+  dplyr::select(starts_with("i.check"))  |>  
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = ""))|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_live_in_house_and_hh_size")
+
 # HH reports 'sell more livestock than usual', but reports not owning any livestock
 df_logic_c_sell_livestock_but_not_owning_any_livestock <- df_tool_data |> 
   filter(liv_stress_4 %in%  c("yes"), hh_own_livestock %in% c( "no")) |> 
@@ -305,6 +349,50 @@ df_logic_c_sell_female_animal_but_not_owning_any_livestock <- df_tool_data |>
   mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_sell_female_animal_but_not_owning_any_livestock")
+
+# If fs_fcs_condiment = 0 i.e. household has not eaten salt, spices, tea, or coffee in the past seven days, surveys should be checked
+df_logic_c_hh_no_eating_condiments <- df_tool_data %>% 
+  filter(fs_fcs_condiment == 0) %>%
+  mutate(i.check.type = "change_response",
+         i.check.name = "fs_fcs_condiment",
+         i.check.current_value = as.character(fs_fcs_condiment),
+         i.check.value = "NA",
+         i.check.issue_id = "hh_no_eating_condiments",
+         i.check.issue = glue("fs_fcs_condiment: {fs_fcs_condiment}, it's unlikely that a household spent 7 days eating food without salt"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "enumerators misinterpreted question", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") %>% 
+  dplyr::select(starts_with("i.check")) %>% 
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = ""))|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_no_eating_condiments")
+
+# If fs_fcs_beans_nuts = 0 i.e. household has not eaten any beans/legumes, pulses or nuts in the past seven days, surveys should be checked
+df_logic_c_hh_no_eating_beans_nuts <- df_tool_data %>% 
+  filter(fs_fcs_beans_nuts == 0) %>%
+  mutate(i.check.type = "change_response",
+         i.check.name = "fs_fcs_beans_nuts",
+         i.check.current_value = as.character(fs_fcs_beans_nuts),
+         i.check.value = "NA",
+         i.check.issue_id = "hh_no_eating_beans_nuts",
+         i.check.issue = glue("fs_fcs_beans_nuts: {fs_fcs_beans_nuts}, it's unlikely that a household spent 7 days eating food without any beans/legumes, pulses or nuts"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "enumerators misinterpreted question", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") %>% 
+  dplyr::select(starts_with("i.check")) %>% 
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = ""))|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_no_eating_beans_nuts")
 
 # same value of fcs components
 df_fd_consumption_score_same <- df_tool_data |>  
@@ -616,7 +704,6 @@ df_logic_c_fd_hhs_severe_but_rcsi_low <- df_tool_data |>
   filter(!is.na(i.check.current_value), !i.check.current_value %in% c("0")) |> 
   supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
   mutate(hh_kebele = as.character(hh_kebele))
-
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_fd_hhs_severe_but_rcsi_low")
 
@@ -1074,3 +1161,4 @@ df_combined_checks <- bind_rows(checks_output)
 write_csv(x = df_combined_checks, file = paste0("outputs/", butteR::date_file_prefix(), "_combined_checks_eth_lcsa_somali.csv"), na = "")
 
 ###############################################################################
+
