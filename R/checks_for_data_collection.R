@@ -580,6 +580,76 @@ df_logic_c_hh_share_sanitation_facility_with_high_number <- df_tool_data |>
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_share_sanitation_facility_with_high_number")
 
 # check FSL -------------------------------------------------------------------
+# check_FCS_high_HHS_high
+# HH has a good diet score: > 38.5 but it was also reported that the household had no food: "yes"
+df_logic_c_hh_has_good_diet_but_nofood <- df_tool_data |> 
+  filter(fs_hhs_nofood %in% c("yes"),
+         fs_hhs_sleephungry %in% c("yes"),
+         fs_hhs_daynoteating %in% c("yes"), fs_calculated_fcs >= 38.5) |>
+  mutate(i.check.type = "change_response",
+         i.check.name = " fs_hhs_nofood",
+         i.check.current_value = as.character(fs_hhs_nofood),
+         i.check.value = "",
+         i.check.issue_id = "hh_has_good_diet_but_nofood",
+         i.check.issue = glue("fs_hhs_nofood :{fs_hhs_nofood}, fs_hhs_sleephungry :{fs_hhs_sleephungry}, fs_hhs_daynoteating :{fs_hhs_daynoteating}"),
+         i.check.other_text = "",
+         i.check.checked_by = "GG",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  slice(rep(1:n(), each = 3)) |> 
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |> 
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "fs_hhs_nofood",
+                                  rank == 2 ~ "fs_hhs_sleephungry",
+                                  TRUE ~ "fs_hhs_daynoteating"),
+         i.check.current_value = case_when(rank == 1 ~ as.character("fs_hhs_nofood"),
+                                           rank == 2 ~ as.character("fs_hhs_sleephungry"),
+                                           TRUE ~ as.character("fs_hhs_daynoteating")) )|> 
+  dplyr::select(starts_with("i.check.")) |>
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = ""))|> 
+  filter(!is.na(current_value))|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_has_good_diet_but_nofood")
+
+# check_FCS_low_HHS_low
+# HH has an alarming diet score: < 38.5 but it was also reported that the household had no food: "yes"
+df_logic_c_hh_has_alarming_diet_but_nofood <- df_tool_data |>
+  filter(fs_hhs_nofood %in% c("no"),
+         fs_hhs_sleephungry %in% c("no"),
+         fs_hhs_daynoteating %in% c("no"), fs_calculated_fcs <= 38.5) |>
+  mutate(i.check.type = "change_response",
+         i.check.name = " fs_hhs_nofood",
+         i.check.current_value = as.character(fs_hhs_nofood),
+         i.check.value = "",
+         i.check.issue_id = "hh_has_alarming_diet_but_nofood",
+         i.check.issue = glue("fs_hhs_nofood :{fs_hhs_nofood}, fs_hhs_sleephungry :{fs_hhs_sleephungry}, fs_hhs_daynoteating :{fs_hhs_daynoteating}"),
+         i.check.other_text = "",
+         i.check.checked_by = "GG",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  slice(rep(1:n(), each = 3)) |> 
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |> 
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "fs_hhs_nofood",
+                                  rank == 2 ~ "fs_hhs_sleephungry",
+                                  TRUE ~ "fs_hhs_daynoteating"),
+         i.check.current_value = case_when(rank == 1 ~ as.character("fs_hhs_nofood"),
+                                           rank == 2 ~ as.character("fs_hhs_sleephungry"),
+                                           TRUE ~ as.character("fs_hhs_daynoteating")) )|> 
+  dplyr::select(starts_with("i.check.")) |>
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = ""))|> 
+  filter(!is.na(current_value))|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_has_alarming_diet_but_nofood")
+
 # mismatch between FCS and HHS
 df_logic_c_fcs_and_hhs_mismatch <- df_tool_data |> 
   filter((i.fcs_cat %in% c("Acceptable")), i.hhs_cat %in% c("Severe")) |> 
