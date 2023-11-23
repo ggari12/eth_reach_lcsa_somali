@@ -764,6 +764,90 @@ df_logic_c_hh_has_alarming_diet_score_but_stress_crisis_emergency <- df_tool_dat
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_has_alarming_diet_score_but_stress_crisis_emergency")
 
+#High FCS score and rcsi used
+# The household diet score is reported to be good but the household reports using reduced coping strategies.
+df_logic_c_hh_has_good_diet_score_but_using_coping_strategies <- df_tool_data |>
+  filter(rCSILessQlty > 0,
+         rCSIMealSize > 0, 
+         rCSIMealAdult > 0,
+         rCSIMealNb > 0,
+         rCSIBorrow > 0, fs_calculated_fcs >= 38.5) |>
+  mutate(i.check.type = "change_response",
+         i.check.name = "rCSILessQlty",
+         i.check.current_value = as.character(rCSILessQlty),
+         i.check.value = "",
+         i.check.issue_id = "hh_has_good_diet_score_but_using_coping_strategies",
+         i.check.issue = glue("rCSILessQlty :{rCSILessQlty}, rCSIMealSize :{rCSIMealSize}, rCSIMealAdult :{rCSIMealAdult}, rCSIMealNb :{rCSIMealNb}, rCSIBorrow :{rCSIBorrow}"),
+         i.check.other_text = "",
+         i.check.checked_by = "GG",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  slice(rep(1:n(), each = 5)) |> 
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |> 
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "rCSILessQlty", 
+                                  rank == 2 ~ "rCSIMealSize", 
+                                  rank == 3 ~ "rCSIMealAdult", 
+                                  rank == 4 ~ "rCSIMealNb", 
+                                  TRUE ~ "rCSIBorrow"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(rCSILessQlty), 
+                                           rank == 2 ~ as.character(rCSIMealSize), 
+                                           rank == 3 ~ as.character(rCSIMealAdult), 
+                                           rank == 4 ~ as.character(rCSIMealNb), 
+                                           TRUE ~ as.character(rCSIBorrow)) 
+  )|> 
+  dplyr::select(starts_with("i.check.")) |>
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = ""))|> 
+  filter(!is.na(current_value))|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_has_good_diet_score_but_using_coping_strategies")
+
+#Low FCS score but rcsi not used
+# The household diet score is reported to be alarming but the household does not report using reduced coping strategies.
+df_logic_c_hh_has_alarming_diet_score_but_no_coping_strategies <- df_tool_data |>
+  filter(rCSILessQlty == 0,
+         rCSIMealSize == 0, 
+         rCSIMealAdult == 0,
+         rCSIMealNb == 0,
+         rCSIBorrow == 0, fs_calculated_fcs <= 38.5) |>
+  mutate(i.check.type = "change_response",
+         i.check.name = "rCSILessQlty",
+         i.check.current_value = as.character(rCSILessQlty),
+         i.check.value = "",
+         i.check.issue_id = "hh_has_alarming_diet_score_but_no_coping_strategies",
+         i.check.issue = glue("rCSILessQlty :{rCSILessQlty}, rCSIMealSize :{rCSIMealSize}, rCSIMealAdult :{rCSIMealAdult}, rCSIMealNb :{rCSIMealNb}, rCSIBorrow :{rCSIBorrow}"),
+         i.check.other_text = "",
+         i.check.checked_by = "GG",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  slice(rep(1:n(), each = 5)) |> 
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |> 
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "rCSILessQlty", 
+                                  rank == 2 ~ "rCSIMealSize", 
+                                  rank == 3 ~ "rCSIMealAdult", 
+                                  rank == 4 ~ "rCSIMealNb", 
+                                  TRUE ~ "rCSIBorrow"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(rCSILessQlty), 
+                                           rank == 2 ~ as.character(rCSIMealSize), 
+                                           rank == 3 ~ as.character(rCSIMealAdult), 
+                                           rank == 4 ~ as.character(rCSIMealNb), 
+                                           TRUE ~ as.character(rCSIBorrow)) 
+  )|> 
+  dplyr::select(starts_with("i.check.")) |>
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = ""))|> 
+  filter(!is.na(current_value))|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_has_alarming_diet_score_but_no_coping_strategies")
+
 # mismatch between FCS and HHS
 df_logic_c_fcs_and_hhs_mismatch <- df_tool_data |> 
   filter((i.fcs_cat %in% c("Acceptable")), i.hhs_cat %in% c("Severe")) |> 
