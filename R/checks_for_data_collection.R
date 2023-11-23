@@ -616,7 +616,7 @@ df_logic_c_hh_has_good_diet_but_nofood <- df_tool_data |>
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_has_good_diet_but_nofood")
 
 # check_FCS_low_HHS_low
-# HH has an alarming diet score: < 38.5 but it was also reported that the household had no food: "yes"
+# HH has an alarming diet score: < 38.5 but it was also reported that the household had no food: "no"
 df_logic_c_hh_has_alarming_diet_but_nofood <- df_tool_data |>
   filter(fs_hhs_nofood %in% c("no"),
          fs_hhs_sleephungry %in% c("no"),
@@ -649,6 +649,120 @@ df_logic_c_hh_has_alarming_diet_but_nofood <- df_tool_data |>
   mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_has_alarming_diet_but_nofood")
+
+#check_FCS_high_LCSI_high
+# It was reported that the the household has a good diet score but reports stress, crisis or emergency strategies for accessing food
+df_logic_c_hh_has_good_diet_score_but_stress_crisis_emergency <- df_tool_data |>
+  filter(!liv_stress_1 %in% c("no_had_no_need"),
+         !liv_stress_2 %in% c("no_had_no_need"),
+         !liv_stress_3 %in% c("no_had_no_need"),
+         !liv_stress_4 %in% c("no_had_no_need"),
+         !liv_crisis_1 %in% c("no_had_no_need"),
+         !liv_crisis_2 %in% c("no_had_no_need"),
+         !liv_crisis_3 %in% c("no_had_no_need"),
+         !liv_emergency_1 %in% c("no_had_no_need"),
+         !liv_emergency_2 %in% c("no_had_no_need"),
+         !liv_emergency_3 %in% c("no_had_no_need"), fs_calculated_fcs >= 38.5) |>
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_stress_1",
+         i.check.current_value = as.character(liv_stress_1),
+         i.check.value = "",
+         i.check.issue_id = "hh_has_good_diet_score_but_stress_crisis_emergency",
+         i.check.issue = glue("liv_stress_1 :{liv_stress_1}, liv_stress_2 :{liv_stress_2}, liv_stress_3 :{liv_stress_3}, liv_stress_4 :{liv_stress_4}, liv_crisis_1 :{liv_crisis_1}, liv_crisis_2 :{liv_crisis_2}, liv_crisis_3 :{liv_crisis_3}, liv_emergency_1 :{liv_emergency_1}, liv_emergency_2 :{liv_emergency_2}, liv_emergency_3 :{liv_emergency_3}"),
+         i.check.other_text = "",
+         i.check.checked_by = "GG",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  slice(rep(1:n(), each = 10)) |> 
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |> 
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "liv_stress_1", 
+                                  rank == 2 ~ "liv_stress_2",
+                                  rank == 3 ~ "liv_stress_3", 
+                                  rank == 4 ~ "liv_stress_4", 
+                                  rank == 5 ~ "liv_crisis_1", 
+                                  rank == 6 ~ "liv_crisis_2", 
+                                  rank == 7 ~ "liv_crisis_3", 
+                                  rank == 8 ~ "liv_emergency_1", 
+                                  rank == 9 ~ "liv_emergency_2", 
+                                  TRUE ~ "liv_emergency_3"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(liv_stress_1),
+                                           rank == 2 ~ as.character(liv_stress_2),
+                                           rank == 3 ~ as.character(liv_stress_3), 
+                                           rank == 4 ~ as.character(liv_stress_4), 
+                                           rank == 5 ~ as.character(liv_crisis_1), 
+                                           rank == 6 ~ as.character(liv_crisis_2), 
+                                           rank == 7 ~ as.character(liv_crisis_3), 
+                                           rank == 8 ~ as.character(liv_emergency_1), 
+                                           rank == 9 ~ as.character(liv_emergency_2), 
+                                           TRUE ~ as.character(liv_emergency_3)) 
+  )|> 
+  dplyr::select(starts_with("i.check.")) |>
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = ""))|> 
+  filter(!is.na(current_value))|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_has_good_diet_score_but_stress_crisis_emergency")
+
+#check_FCS_low_LCSI_low
+# It was reported that the household has an alarming diet score but does not report stress, crisis or emergency strategies
+df_logic_c_hh_has_alarming_diet_score_but_stress_crisis_emergency <- df_tool_data |>
+  filter(liv_stress_1 %in% c("no_had_no_need"),
+         liv_stress_2 %in% c("no_had_no_need"),
+         liv_stress_3 %in% c("no_had_no_need"),
+         liv_stress_4 %in% c("no_had_no_need"),
+         liv_crisis_1 %in% c("no_had_no_need"),
+         liv_crisis_2 %in% c("no_had_no_need"),
+         liv_crisis_3 %in% c("no_had_no_need"),
+         liv_emergency_1 %in% c("no_had_no_need"),
+         liv_emergency_2 %in% c("no_had_no_need"),
+         liv_emergency_3 %in% c("no_had_no_need"), fs_calculated_fcs <= 38.5) |>
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_stress_1",
+         i.check.current_value = as.character(liv_stress_1),
+         i.check.value = "",
+         i.check.issue_id = "hh_has_alarming_diet_score_but_stress_crisis_emergency",
+         i.check.issue = glue("liv_stress_1 :{liv_stress_1}, liv_stress_2 :{liv_stress_2}, liv_stress_3 :{liv_stress_3}, liv_stress_4 :{liv_stress_4}, liv_crisis_1 :{liv_crisis_1}, liv_crisis_2 :{liv_crisis_2}, liv_crisis_3 :{liv_crisis_3}, liv_emergency_1 :{liv_emergency_1}, liv_emergency_2 :{liv_emergency_2}, liv_emergency_3 :{liv_emergency_3}"),
+         i.check.other_text = "",
+         i.check.checked_by = "GG",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "")  |> 
+  slice(rep(1:n(), each = 10)) |> 
+  group_by(i.check.uuid, i.check.start_date, i.check.enumerator_id, i.check.type,  i.check.name,  i.check.current_value) |> 
+  mutate(rank = row_number(),
+         i.check.name = case_when(rank == 1 ~ "liv_stress_1", 
+                                  rank == 2 ~ "liv_stress_2",
+                                  rank == 3 ~ "liv_stress_3", 
+                                  rank == 4 ~ "liv_stress_4", 
+                                  rank == 5 ~ "liv_crisis_1", 
+                                  rank == 6 ~ "liv_crisis_2", 
+                                  rank == 7 ~ "liv_crisis_3", 
+                                  rank == 8 ~ "liv_emergency_1", 
+                                  rank == 9 ~ "liv_emergency_2", 
+                                  TRUE ~ "liv_emergency_3"),
+         i.check.current_value = case_when(rank == 1 ~ as.character(liv_stress_1),
+                                           rank == 2 ~ as.character(liv_stress_2),
+                                           rank == 3 ~ as.character(liv_stress_3), 
+                                           rank == 4 ~ as.character(liv_stress_4), 
+                                           rank == 5 ~ as.character(liv_crisis_1), 
+                                           rank == 6 ~ as.character(liv_crisis_2), 
+                                           rank == 7 ~ as.character(liv_crisis_3), 
+                                           rank == 8 ~ as.character(liv_emergency_1), 
+                                           rank == 9 ~ as.character(liv_emergency_2), 
+                                           TRUE ~ as.character(liv_emergency_3)) 
+  )|> 
+  dplyr::select(starts_with("i.check.")) |>
+  rename_with(~str_replace(string = .x, pattern = "i.check.", replacement = ""))|> 
+  filter(!is.na(current_value))|> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_hh_has_alarming_diet_score_but_stress_crisis_emergency")
 
 # mismatch between FCS and HHS
 df_logic_c_fcs_and_hhs_mismatch <- df_tool_data |> 
