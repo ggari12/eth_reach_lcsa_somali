@@ -18,7 +18,6 @@ library(healthyr)
 # Step 1: Load your Dataset ####
 
 df <- readxl::read_excel(path = "inputs/clean_data_eth_lcsa_somali.xlsx", na = "NA") |> 
-df <- readxl::read_excel(data_path) |> 
   mutate(across(.cols = liv_stress_1:liv_emergency_3, 
                 .fns = ~case_when(.x %in% c("yes") ~ "1",
                                   .x %in% c("no_had_no_need") ~ "2",
@@ -88,11 +87,14 @@ write_csv(cl_food_related,
 # Step 6: Analyse Survey Results ####
 
 (res <- analyse_survey_results(df = df2,
-                               aggregation = "enum_id",
+                               aggregation = "enum",
+                               
                                sample_design = "two_stage_cluster",
                                cluster = "cluster",
+                               
                                proportions = c("fcs_cat", "hhs_cat", "hdds_cat", "rcsi_cat", "lcs_cat",
                                                "fc_phase", "fclc_phase"),
+                               
                                means = c("fcs_score", "hhs_score", "rcsi_score")))
 
 ##################################################################################
