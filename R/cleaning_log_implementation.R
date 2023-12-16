@@ -73,13 +73,13 @@ vars_to_remove_from_data = c("deviceid", "audit", "audit_URL", "instance_name", 
 df_cleaning_log_main <-  df_cleaning_log |> 
   filter(is.na(sheet))
 
-df_cleaning_step <- supporteR::cleaning_support(input_df_raw_data = df_raw_data,
+df_cleaning_step <- supporteR::cleaning_support(input_df_raw_data = df_raw_data |> select(-starts_with("healthcare_seek")),
                                                 input_df_survey = df_survey,
                                                 input_df_choices = df_choices,
                                                 input_df_cleaning_log = df_cleaning_log_main, 
                                                 input_vars_to_remove_from_data = vars_to_remove_from_data) 
 
-df_cleaned_data <- df_cleaning_step|> 
+df_cleaned_data <- df_cleaning_step 
 intermediate_cols <- c("lcsi_stress1", "lcsi_stress2", "lcsi_stress3", "lcsi_stress4", "lcsi_crisis1", "lcsi_crisis2", "lcsi_crisis3", "lcsi_emergency1", "lcsi_emergency2", "lcsi_emergency3", "lcsi_stress_yes", "lcsi_stress_exhaust", "lcsi_stress", "lcsi_crisis_yes", "lcsi_crisis_exhaust", "lcsi_crisis", "lcsi_emergency_yes", "lcsi_emergency_exhaust", "lcsi_emergency", "lcsi_cat_yes", "lcsi_cat_exhaust")
 
 df_main_with_composites <- df_cleaned_data |> 
@@ -91,12 +91,12 @@ df_main_with_composites <- df_cleaned_data |>
 
 # roster
 df_cleaning_log_roster <- df_cleaning_log |> 
-  select(any_of(colnames(loop_roster)), `_index`, `_submission__uuid` = "_uuid") |> 
+  select(any_of(colnames(loop_hh_roster)), `_index`, `_submission__uuid` = "_uuid") |> 
   filter(`_submission__uuid` %in% df_cleaned_data$uuid)
 
 # health
 df_cleaned_data_log_health <- df_raw_data_loop_health |> 
-  select(any_of(colnames(loop_health)), `_index`, `_submission__uuid` = "_uuid") |> 
+  select(any_of(colnames(loop_hh_health)), `_index`, `_submission__uuid` = "_uuid") |> 
   filter(`_submission__uuid` %in% df_cleaned_data$uuid)
 
 # # deletion log --------------------------------------------------------------
@@ -113,15 +113,15 @@ df_raw_data_final <- df_raw_data |>
   mutate(across(.cols = any_of(vars_to_remove_from_data), .fns = ~na_if(., .)))  
 
 list_of_raw_datasets <- list("raw_main" = df_raw_data_final,
-                             "raw_roster_loop" = loop_roster,
-                             "raw_health_loop" = loop_health)
+                             "raw_roster_loop" = loop_hh_roster,
+                             "raw_health_loop" = loop_hh_health)
 
 openxlsx::write.xlsx(x = list_of_raw_datasets,
                      file = paste0("outputs/", butteR::date_file_prefix(), 
                                    "_raw_data_eth_lcsa_somali.xlsx"))
 
 list_of_clean_datasets <- list("cleaned_main_data" = df_main_with_composites,
-                               "cleaned_roster_loop" = df_cleaned_data_log_roster,
+                               #"cleaned_roster_loop" = df_cleaned_data_log_roster,
                                "cleaned_health_loop" = df_cleaned_data_log_health)
 
 openxlsx::write.xlsx(x = list_of_clean_datasets,
