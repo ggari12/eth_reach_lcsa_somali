@@ -66,7 +66,7 @@ df_choices <- readxl::read_excel(loc_tool, sheet = "choices") |>
          name = str_replace(string = name, pattern = "\\ ", replacement = ""))
 
 vars_to_remove_from_data = c("deviceid", "audit", "audit_URL", "instance_name", "person_name", "gps",
-                             "_gps_latitude", "_gps_longitude", "_gps_altitude", "_gps_precision")
+                             "_gps_latitude", "_gps_longitude", "_gps_altitude", "_gps_precision") 
 
 # main dataset ----------------------------------------------------------------
 
@@ -113,8 +113,8 @@ df_raw_data_final <- df_raw_data |>
   mutate(across(.cols = any_of(vars_to_remove_from_data), .fns = ~na_if(., .)))  
 
 list_of_raw_datasets <- list("raw_main" = df_raw_data_final,
-                             "raw_roster_loop" = loop_hh_roster,
-                             "raw_health_loop" = loop_hh_health)
+                             "raw_roster_loop" = loop_hh_roster |> select(-"person_name"),
+                             "raw_health_loop" = loop_hh_health |> select(-"health_ind_name"))
 
 openxlsx::write.xlsx(x = list_of_raw_datasets,
                      file = paste0("outputs/", butteR::date_file_prefix(), 

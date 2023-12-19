@@ -38,8 +38,7 @@ df2 <- format_nut_health_indicators(df = df,
                                     
                                     rcsi_lesspreferred_1 = "rCSILessQlty", rcsi_borrowfood_2 = "rCSIBorrow", rcsi_limitportion_3 = "rCSIMealSize", rcsi_restrict_4 = "rCSIMealAdult", rcsi_reducemeals5 = "rCSIMealNb",
                                     
-                                    lcs_variables = c("liv_stress_1", "liv_stress_2", "liv_stress_3", "liv_stress_4", "liv_crisis_1", "liv_crisis_2", "liv_crisis_3", "liv_emergency_1", "liv_emergency_2", "liv_emergency_3")
-)
+                                    lcs_variables = c("liv_stress_1", "liv_stress_2", "liv_stress_3", "liv_stress_4", "liv_crisis_1", "liv_crisis_2", "liv_crisis_3", "liv_emergency_1", "liv_emergency_2", "liv_emergency_3"))
 
 # Step 3: Review a Quality Summary Report ####
 
