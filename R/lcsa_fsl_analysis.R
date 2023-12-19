@@ -42,13 +42,13 @@ df2 <- format_nut_health_indicators(df = df,
 
 # Step 3: Review a Quality Summary Report ####
 
-# (create_fsl_quality_report(df = df2, short_report = TRUE))
+ (create_fsl_quality_report(df = df2, short_report = TRUE))
 # 
-# (create_fsl_quality_report(df = df2, short_report = FALSE))
+ (create_fsl_quality_report(df = df2, short_report = FALSE))
 # 
-# (create_fsl_quality_report(df = df2, grouping = "enum", short_report = TRUE))
+ (create_fsl_quality_report(df = df2, grouping = "enum", short_report = TRUE))
 # 
-# (create_fsl_quality_report(df = df2, grouping = "enum", short_report = FALSE))
+ (create_fsl_quality_report(df = df2, grouping = "enum", short_report = FALSE))
 
 # export reports
 healthyr::create_fsl_quality_report(df = df2, 
@@ -76,7 +76,7 @@ healthyr::create_fsl_quality_report(df = df2,
 
 (flag_summary <- flag_summary_table(df = df2, grouping = "enum"))
 
-cl <- create_cleaning_log_flags(df = df2, uuid_col = "_uuid")
+cl <- create_cleaning_log_flags(df = df2, uuid_col = "uuid")
 
 cl_food_related <- cl|> filter(!description %in% c("Other values, check if should be recoded."))
 
@@ -91,7 +91,7 @@ write_csv(cl_food_related,
                                sample_design = "two_stage_cluster",
                                cluster = "cluster",
                                
-                               proportions = c("fcs_cat", "hhs_cat", "hdds_cat", "rcsi_cat", "lcs_cat",
+                               proportions = c("fcs_cat", "hhs_cat",  "rcsi_cat", "lcs_cat",
                                                "fc_phase", "fclc_phase"),
                                
                                means = c("fcs_score", "hhs_score", "rcsi_score")))
