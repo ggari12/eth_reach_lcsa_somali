@@ -24,6 +24,14 @@ df_tool_data <- readxl::read_excel(data_path) |>
   mutate( 
     #i.hh_tot_income = sum(c_across(last30_income_agriculture_livestock:last30_hh_other_income_amount), na.rm = T),
     #i.tot_expenditure = sum(c_across(expenditure_food:expenditure_other_frequent), na.rm = T),
+    i.hh_size = case_when(hh_size <= 3 ~ "between_1_and_3_members",
+                          hh_size <= 6 ~ "between_4_and_6_members",
+                          hh_size <= 9 ~ "between_7_and_9_members",
+                          hh_size >= 10 ~ "10_or_more_members"),
+    i.respondent_age = case_when(respondent_age <= 24 ~ "age_18_24",
+                                 respondent_age <= 39 ~ "age_25_39",
+                                 respondent_age <= 59 ~ "age_40_59",
+                                 respondent_age > 59 ~ "age_60+"),
     #int.hh_number_male = sum(c_across(c("hh_number_men_count", "hh_number_boys_count")), na.rm = T),
     #int.hh_number_female = sum(c_across(c("hh_number_women_count", "hh_number_girls_count")), na.rm = T)
   
