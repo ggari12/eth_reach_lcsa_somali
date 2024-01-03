@@ -102,7 +102,7 @@ add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_t
 # fix enumerator_id data ------------------------------------------------------
 
 df_logic_c_enumerator_id_harmonization <- df_tool_data |> 
-  filter(is.na(enumerator_id), i.check.start_date > as_date("2023-11-10")) |> 
+  filter(is.na(enumerator_id), i.check.start_date > as_date("2023-11-11")) |> 
   mutate(i.check.type = "change_response",
          i.check.name = "enumerator_id",
          i.check.current_value = "NA",
@@ -124,7 +124,7 @@ add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_l
 # Time checks -----------------------------------------------------------------
 
 # Time interval for the survey
-min_time_of_survey <- 20
+min_time_of_survey <- 15
 max_time_of_survey <- 120
 
 df_c_survey_time <-  supporteR::check_survey_time(input_tool_data = df_tool_data, 
