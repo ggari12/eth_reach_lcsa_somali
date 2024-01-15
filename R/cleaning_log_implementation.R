@@ -9,7 +9,7 @@ source("R/composite_indicators.R")
 
 # Read data and checking log 
 
-df_cleaning_log <- read_csv("inputs/combined_checks_eth_lcsa_somali_GG.csv", col_types = cols(sheet = "c", index = "i")) |> 
+df_cleaning_log <- read_csv("inputs/combined_checks_eth_lcsa_somali_GG2.csv", col_types = cols(sheet = "c", index = "i")) |> 
   filter(!adjust_log %in% c("delete_log"), reviewed %in% c("1")) |>
   mutate(adjust_log = ifelse(is.na(adjust_log), "apply_suggested_change", adjust_log),
          value = ifelse(is.na(value) & str_detect(string = issue_id, pattern = "logic_c_"), "blank", value),
