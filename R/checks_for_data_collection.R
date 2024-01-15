@@ -1450,10 +1450,10 @@ df_logic_c_lcsi_no_livestock_but_emergency2_c8 <- df_tool_data |>
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_no_livestock_but_emergency2_c8")
 
 # log 999
-cols_with_integer_values <- df_survey |> filter(type %in% c("integer")) |> pull(name)
+cols_with_integer_values <- df_survey |> filter(type %in% c("integer")) |> pull(name) 
 
 df_999_data <- purrr::map_dfr(.x = cols_with_integer_values, 
-                              .f = ~ {df_tool_data |> 
+                              .f = ~ {df_raw_data_loop_hh_roster |>
                                   dplyr::filter(str_detect(string = !!sym(.x), pattern = "^-[9]{2,4}$|^[9]{2,4}$")) |> 
                                   dplyr::mutate(i.check.type = "change_response",
                                                 i.check.name = .x,
