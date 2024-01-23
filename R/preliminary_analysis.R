@@ -26,8 +26,8 @@ df_main_clean_data <- readxl::read_excel(path = data_path, sheet = "cleaned_main
 # add weights to data
 df_main_clean_data_with_weights <- df_main_clean_data |>
   dplyr::group_by(hh_zone, pop_group)|>
-  left_join(weight_table, by = c("hh_zone", "pop_group"))
-
+  left_join(weight_table, by = c("hh_zone", "pop_group"))|>
+  dplyr::rename(zone1="hh_zone")
 
 loop_support_data <- df_main_clean_data_with_weights|> 
   dplyr::select(uuid, hh_woreda, i.hoh_gender,strata, weights)
@@ -52,13 +52,13 @@ dap <- read_csv("inputs/r_dap_eth_lcsa_somali.csv")
 # main dataset ------------------------------------------------------------
 
 # set up design object
-ref_svy <- as_survey(.data = df_main_clean_data)
+ref_svy <- as_survey(.data = df_main_clean_data_with_weights, strata = strata, weights = weights)
 
 # analysis
 
 df_main_analysis <- analysis_after_survey_creation(input_svy_obj = ref_svy,
                                                    input_dap = dap) |> 
-  mutate(level = "Household")
+  dplyr::mutate(level = "Household")
 
 # health loop -------------------------------------------------------------
 
@@ -69,17 +69,45 @@ df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_sv
                                                           input_dap = dap) |> 
   mutate(level = "Individual")
 
+# roster ------------------------------------------------------------------
+
+df_dap_roster <- bind_rows(tibble::tribble(~variable,
+                                           "i.individual_age_cat")) |> 
+  mutate(split = "all",
+         subset_1 = "hh_woreda",
+         subset_2 = "i.individual_gender"
+  ) |> 
+  pivot_longer(cols = starts_with("subset"), names_to = "subset_no", values_to = "subset_1") |> 
+  filter(!is.na(subset_1), !subset_1 %in% c("NA")) |> 
+  select(-subset_no)
+
+df_main_pivot <- df_main_clean_data_with_weights |> 
+  pivot_longer(cols = num_males_0to6:num_females_66plusyrs, names_to = "i.num_gender_age", values_to = "i.hh_size_based_on_gender_age")
+
+df_roster_extract <- df_main_pivot |> 
+  filter(i.hh_size_based_on_gender_age > 0) |> 
+  uncount(i.hh_size_based_on_gender_age) |> 
+  mutate(i.individual_gender = ifelse(str_detect(string = i.num_gender_age, pattern = "females"), "Female", "Male"),
+         i.individual_age_cat = case_when(str_detect(string = i.num_gender_age, pattern = "0to6|7to3yrs|4to6") ~ "cat_0_6",
+                                          str_detect(string = i.num_gender_age, pattern = "7to13|14to17") ~ "cat_7_17",
+                                          str_detect(string = i.num_gender_age, pattern = "18to49|50to65") ~ "cat_18_65",
+                                          str_detect(string = i.num_gender_age, pattern = "66plusyrs") ~ "cat_66+" ))
+
+# set up design object
+ref_svy_roster <- as_survey(.data = df_roster_extract, strata = strata, weights = weights)
+# analysis
+df_analysis_roster <- analysis_after_survey_creation(input_svy_obj = ref_svy_roster,
+                                                     input_dap = df_dap_roster ) |> 
+  mutate(level = "Individual")
+
+
 # merge and format analysis ----------------------------------------------------------
 
 combined_analysis <- bind_rows(df_main_analysis, df_analysis_education_loop, df_analysis_health_loop)
 
 
-integer_cols_i <- c("i.fcs", "i.rcsi", "i.hhs", "i.hh_composition_size",  "i.adults_permanent_job", "i.adults_temporary_job", "i.adults_casual_lobour",
-                    "i.adults_own_bisuness", "i.children_permanent_job", "i.children_temporary_job", "i.children_casual_lobour",
-                    "i.children_own_bisuness", "i.boys_early_marriege", "i.girls_early_marriege", "i.boys_work_outside_home",)
-integer_cols_int <- c("int.fcs", "int.rcsi", "int.hhs", "int.hh_composition_size", "int.adults_permanent_job", "int.adults_temporary_job", "int.adults_casual_lobour",
-                      "int.adults_own_bisuness", "int.children_permanent_job", "int.children_temporary_job", "int.children_casual_lobour",
-                      "int.children_own_bisuness", "int.boys_early_marriege", "int.girls_early_marriege", "int.boys_work_outside_home",)
+integer_cols_i <- c("i.fcs", "i.rcsi", "i.hhs")
+integer_cols_int <- c("int.fcs", "int.rcsi", "int.hhs")
 
 # formatting the analysis, adding question labels
 full_analysis_long <- combined_analysis |> 
