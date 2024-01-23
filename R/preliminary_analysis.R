@@ -4,24 +4,35 @@ library(srvyr)
 library(supporteR)  
 
 source("R/composite_indicators.R")
-
+getwd()
 # packages to install incase
 # devtools::install_github("zackarno/butteR")
 # devtools::install_github("twesigye10/supporteR")
 
 # clean data
 data_path <- "inputs/clean_data_eth_lcsa_somali.xlsx"
+weight_table <- readxl::read_excel("inputs/data_eth_lcsa_somali_weighted.xlsx")|>
+  dplyr::group_by(hh_zone, pop_group)
 
 data_nms <- names(readxl::read_excel(path = data_path, n_max = 3000, sheet = "cleaned_main_data"))
 c_types <- ifelse(str_detect(string = data_nms, pattern = "_other$"), "text", "guess")
 
 df_main_clean_data <- readxl::read_excel(path = data_path, sheet = "cleaned_main_data", col_types = c_types, na = "NA") |> 
-  create_composite_indicators()
+  dplyr::select(-starts_with("i.")) |> 
+  create_composite_indicators() |> 
+  dplyr::mutate(strata = hh_woreda) |> 
+  dplyr::mutate(across(.cols = starts_with("i."), .fns = ~ ifelse((is.infinite(.x)|is.nan(.x)), NA, .)))
 
-loop_support_data <- df_main_clean_data |> select(uuid, hh_woreda, i.hoh_gender)
+# add weights to data
+df_main_clean_data_with_weights <- df_main_clean_data |>
+  dplyr::group_by(hh_zone, pop_group)|>
+  left_join(weight_table, by = c("hh_zone", "pop_group"))
 
-health_loop <- readxl::read_excel(path = data_path, sheet = "cleaned_health_loop", na = "NA") |> 
-  create_composite_indicators_health()
+
+loop_support_data <- df_main_clean_data_with_weights|> 
+  dplyr::select(uuid, hh_woreda, i.hoh_gender,strata, weights)
+
+health_loop <- readxl::read_excel(path = data_path, sheet = "cleaned_health_loop", na = "NA") 
 df_health_clean_data <- loop_support_data |> 
   inner_join(health_loop, by = c("uuid" = "_submission__uuid") ) 
 
