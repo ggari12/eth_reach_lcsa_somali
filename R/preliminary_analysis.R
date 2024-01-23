@@ -59,7 +59,7 @@ ref_svy <- as_survey(.data = df_main_clean_data_with_weights, strata = strata, w
 df_main_analysis <- analysis_after_survey_creation(input_svy_obj = ref_svy,
                                                    input_dap = dap) |> 
   dplyr::mutate(level = "Household")
-
+view(df_main_analysis)
 # health loop -------------------------------------------------------------
 
 # set up design object
