@@ -9,14 +9,9 @@ getwd()
 # Load and process household data
 df <- readxl::read_xlsx("inputs/clean_data_eth_lcsa_somali.xlsx", sheet = "cleaned_main_data")
 
-table(df$hh_zone)
-
 df2 <- df %>%
   dplyr::group_by(hh_zone, pop_group) %>%
   dplyr::summarise(num_households_data = n())
-
-table(df2$pop_group)
-
 
 # load and process sampling frame
 
@@ -45,6 +40,6 @@ weights <- sampling_frame_2 %>% dplyr::left_join(df2, by = c("hh_zone", "pop_gro
   dplyr::mutate(
     prop_sf = num_households_sf / sum(num_households_sf, na.rm = TRUE),
     prop_data = num_households_data / sum(num_households_data, na.rm = TRUE),
-    pw = (prop_sf / prop_data))
+   weights = (prop_sf / prop_data))
 
 writexl::write_xlsx(weights, "inputs/data_eth_lcsa_somali_weighted.xlsx")
