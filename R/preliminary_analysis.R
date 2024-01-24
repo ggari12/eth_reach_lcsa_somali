@@ -29,12 +29,23 @@ df_main_clean_data_with_weights <- df_main_clean_data |>
   left_join(weight_table, by = c("hh_zone", "pop_group"))|>
   dplyr::rename(zone1="hh_zone")
 
+
+writexl::write_xlsx(df_main_clean_data_with_weights, "inputs/clean_data_eth_lcsa_somali_weighted.xlsx")
+
 loop_support_data <- df_main_clean_data_with_weights|> 
   dplyr::select(uuid, hh_woreda, i.hoh_gender,strata, weights)
+
+#Load loop
 
 health_loop <- readxl::read_excel(path = data_path, sheet = "cleaned_health_loop", na = "NA") 
 df_health_clean_data <- loop_support_data |> 
   inner_join(health_loop, by = c("uuid" = "_submission__uuid") ) 
+
+
+roster_loop <- readxl::read_excel(path = data_path, sheet = "cleaned_roster_loop", na = "NA")|> 
+create_composite_indicators_roster()
+df_roster_clean_data <- loop_support_data |> 
+  inner_join(roster_loop, by = c("uuid" = "_submission__uuid") ) 
 
 # tool
 loc_tool <- "inputs/REACH_ETH_LCSA_Somali_tool.xlsx"
@@ -59,42 +70,49 @@ ref_svy <- as_survey(.data = df_main_clean_data_with_weights, strata = strata, w
 df_main_analysis <- analysis_after_survey_creation(input_svy_obj = ref_svy,
                                                    input_dap = dap) |> 
   dplyr::mutate(level = "Household")
-view(df_main_analysis)
+
 # health loop -------------------------------------------------------------
 
+
+
 # set up design object
-ref_svy_health_loop <- as_survey(.data = df_health_clean_data)
+#ref_svy_health_loop <- as_survey(.data = df_health_clean_data)
 # analysis
-df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_svy_health_loop,
-                                                          input_dap = dap) |> 
-  mutate(level = "Individual")
+#df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_svy_health_loop,
+#                                                          input_dap = dap) |> 
+#  mutate(level = "Individual")
+
+
+
 
 # roster ------------------------------------------------------------------
 
 df_dap_roster <- bind_rows(tibble::tribble(~variable,
-                                           "i.individual_age_cat")) |> 
+                                           "i.individual_age_cat",
+                                           "i.individual_school_age_cat",
+                                           "i.individual_genre_cat")) |> 
   mutate(split = "all",
          subset_1 = "hh_woreda",
-         subset_2 = "i.individual_gender"
+         subset_2 = "ind_gender"
   ) |> 
   pivot_longer(cols = starts_with("subset"), names_to = "subset_no", values_to = "subset_1") |> 
   filter(!is.na(subset_1), !subset_1 %in% c("NA")) |> 
   select(-subset_no)
 
-df_main_pivot <- df_main_clean_data_with_weights |> 
-  pivot_longer(cols = num_males_0to6:num_females_66plusyrs, names_to = "i.num_gender_age", values_to = "i.hh_size_based_on_gender_age")
-
-df_roster_extract <- df_main_pivot |> 
-  filter(i.hh_size_based_on_gender_age > 0) |> 
-  uncount(i.hh_size_based_on_gender_age) |> 
-  mutate(i.individual_gender = ifelse(str_detect(string = i.num_gender_age, pattern = "females"), "Female", "Male"),
-         i.individual_age_cat = case_when(str_detect(string = i.num_gender_age, pattern = "0to6|7to3yrs|4to6") ~ "cat_0_6",
-                                          str_detect(string = i.num_gender_age, pattern = "7to13|14to17") ~ "cat_7_17",
-                                          str_detect(string = i.num_gender_age, pattern = "18to49|50to65") ~ "cat_18_65",
-                                          str_detect(string = i.num_gender_age, pattern = "66plusyrs") ~ "cat_66+" ))
+# df_main_pivot <- df_main_clean_data_with_weights |> 
+#   pivot_longer(cols = num_males_0to6:num_females_66plusyrs, names_to = "i.num_gender_age", values_to = "i.hh_size_based_on_gender_age")
+# 
+# df_roster_extract <- df_main_pivot |> 
+#   filter(i.hh_size_based_on_gender_age > 0) |> 
+#   uncount(i.hh_size_based_on_gender_age) |> 
+#   mutate(i.individual_gender = ifelse(str_detect(string = i.num_gender_age, pattern = "females"), "Female", "Male"),
+#          i.individual_age_cat = case_when(str_detect(string = i.num_gender_age, pattern = "0to6|7to3yrs|4to6") ~ "cat_0_6",
+#                                           str_detect(string = i.num_gender_age, pattern = "7to13|14to17") ~ "cat_7_17",
+#                                           str_detect(string = i.num_gender_age, pattern = "18to49|50to65") ~ "cat_18_65",
+#                                           str_detect(string = i.num_gender_age, pattern = "66plusyrs") ~ "cat_66+" ))
 
 # set up design object
-ref_svy_roster <- as_survey(.data = df_roster_extract, strata = strata, weights = weights)
+ref_svy_roster <- as_survey(.data = df_roster_clean_data, strata = strata, weights = weights)
 # analysis
 df_analysis_roster <- analysis_after_survey_creation(input_svy_obj = ref_svy_roster,
                                                      input_dap = df_dap_roster ) |> 
@@ -134,7 +152,8 @@ full_analysis_long <- combined_analysis |>
          level)
 
 # output analysis
+
 write_csv(full_analysis_long, paste0("outputs/", butteR::date_file_prefix(), "_full_analysis_lf_eth_lcsa_somali.csv"), na="")
 write_csv(full_analysis_long, paste0("outputs/full_analysis_lf_eth_lcsa_somali.csv"), na="")
-
+write_csv(df_main_analysis, paste0("outputscombined_analysis_lf_eth_somali.csv"), na="")
 ###############################################################################
