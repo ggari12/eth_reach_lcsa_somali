@@ -3,7 +3,7 @@
 
 create_composite_indicators <- function(input_df) {
   input_df |> 
-    mutate(int.fcs_cereals_tubers = fs_fcs_cereals_grains_roots_tubers*2,
+    dplyr::mutate(int.fcs_cereals_tubers = fs_fcs_cereals_grains_roots_tubers*2,
            int.fcs_pulses = fs_fcs_beans_nuts*3,
            int.fcs_vegetables = fs_fcs_vegetables_leaves,
            int.fcs_fruit = fs_fcs_fruit,
@@ -30,7 +30,7 @@ create_composite_indicators <- function(input_df) {
                                                       fs_hhs_daynoteating %in% c("yes") & fs_hhs_daynoteating_freq %in% c("often") ~ 2) 
     ) |> 
     rowwise() |> 
-    mutate(int.fcs = sum(c_across(int.fcs_cereals_tubers:int.fcs_oils)),
+    dplyr::mutate(int.fcs = sum(c_across(int.fcs_cereals_tubers:int.fcs_oils)),
            int.rcsi = sum(c_across(int.rCSILessQlty:int.rCSIMealNb)),
            int.hhs = sum(c_across(int.freq_no_food_lack_resources:int.freq_day_and_night_no_food)),
            i.hh_size = case_when(hh_size <= 3 ~ "between_1_and_3_members",
@@ -46,7 +46,7 @@ create_composite_indicators <- function(input_df) {
            
     ) |>
     ungroup() |>
-    mutate(i.fcs = int.fcs,
+    dplyr::mutate(i.fcs = int.fcs,
            i.fcs_cat = case_when(i.fcs <= 21 ~ "Poor",
                                  i.fcs <= 35 ~ "Borderline",
                                  i.fcs <= 112 ~ "Acceptable"),
