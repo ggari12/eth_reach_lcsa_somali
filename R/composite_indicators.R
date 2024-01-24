@@ -204,18 +204,22 @@ create_composite_indicators <- function(input_df) {
 create_composite_indicators_roster <- function(input_df) {
   input_df |> 
     dplyr::mutate(i.individual_age_cat = case_when(
-      ind_age<18~"children",
-      ind_age>=18~"adults"
+      ind_age<18~"children_17-",
+      ind_age>=18~"adults_18+"
     ),
-   i.individual_school_age_cat = case_when(
-      ind_age>=6 & ind_age<18 ~ "school age children",
-      ind_age >=6 & ind_age <18 & ind_gender =="female"~"girl school age",
-      ind_age >=6 & ind_age <18 & ind_gender =="male"~"boy school age"
+    i.individual_genre_cat=case_when(
+      ind_age<13 & ind_gender =="female"~"NA",
+      ind_age>=13 & ind_gender =="female"~"woman aged 13 over"
     ),
-   i.individual_genre_cat = case_when(
-      ind_age<18 & ind_gender =="female"~"girl",
-      ind_age <18 & ind_gender == "male"~"boy",
-      ind_age <14 & ind_gender == "female"~"women aged 13 and over"
+   i.individual_age_school_cat = case_when(
+     ind_age<6~"NA",
+      ind_age>=6 &ind_age<18 ~ "school age children 6-17",
+      ind_age>18 ~ "other age"
+    ),
+   i.individual_genre_age_cat = case_when(
+      ind_age>=6 & ind_age<18 & ind_gender =="female"~"girl school 6-17",
+      ind_age>=6 & ind_age <18 & ind_gender == "male"~"boy school 6-17",
+      
     )
     )
 }
