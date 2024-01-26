@@ -90,8 +90,9 @@ df_main_analysis <- analysis_after_survey_creation(input_svy_obj = ref_svy,
 
 df_dap_roster <- bind_rows(tibble::tribble(~variable,
                                            "i.individual_age_cat",
-                                           "i.individual_school_age_cat",
-                                           "i.individual_genre_cat")) |> 
+                                           "i.individual_genre_cat",
+                                           "i.individual_age_school_cat",
+                                           "i.individual_genre_age_cat")) |> 
   mutate(split = "all",
          subset_1 = "hh_woreda",
          subset_2 = "ind_gender"
@@ -119,10 +120,10 @@ df_analysis_roster <- analysis_after_survey_creation(input_svy_obj = ref_svy_ros
                                                      input_dap = df_dap_roster ) |> 
   mutate(level = "Individual")
 
-
+view(df_analysis_roster)
 # merge and format analysis ----------------------------------------------------------
 
-combined_analysis <- bind_rows(df_main_analysis, df_analysis_education_loop, df_analysis_health_loop)
+combined_analysis <- bind_rows(df_main_analysis, df_analysis_health_loop)
 
 
 integer_cols_i <- c("i.fcs", "i.rcsi", "i.hhs")
