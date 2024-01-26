@@ -1,15 +1,25 @@
 ################################################################################
+rm(list = ls())
 # Applying the cleaning log to clean the data
 library(tidyverse)
 library(lubridate)
 library(glue)
+library(magrittr)
+library(stringi)
+library(stringr)
 library(supporteR)
 
 source("R/composite_indicators.R")
+options("openxlsx.dateFormat" = "dd/mm/yyyy")
 
 # Read data and checking log 
+# data
 
-df_cleaning_log <- read_csv("inputs/combined_checks_eth_lcsa_somali_GG2.csv", col_types = cols(sheet = "c", index = "i")) |> 
+#df_cleaning_log1 <-read_csv("outputs/combined_checks_eth_lcsa_somali_GG2.csv", col_types = cols(sheet = "c", index = "i"))
+
+
+data_path <- "outputs/combined_checks_eth_lcsa_somali_GG2_Carlos.xlsx"
+df_cleaning_log <- readxl::read_excel(data_path, col_types = "text", na = "NA")|> 
   filter(!adjust_log %in% c("delete_log"), reviewed %in% c("1")) |>
   mutate(adjust_log = ifelse(is.na(adjust_log), "apply_suggested_change", adjust_log),
          value = ifelse(is.na(value) & str_detect(string = issue_id, pattern = "logic_c_"), "blank", value),
@@ -24,22 +34,22 @@ df_cleaning_log <- read_csv("inputs/combined_checks_eth_lcsa_somali_GG2.csv", co
   select(uuid, type, name, value, issue_id, sheet, index, relevant, issue)
 
 # raw data
-data_path <- "inputs/REACH_ETH_LCSA_Somali_data.xlsx"
+data_path <- "inputs/REACH_ETH_LCSA_Somali_data .xlsx"
 
 cols_to_escape <- c("index", "start", "end", "today", "starttime", "endtime", "_submission_time", "_submission__submission_time")
 
 data_nms <- names(readxl::read_excel(path = data_path, n_max = 3000))
 c_types <- case_when(str_detect(string = data_nms, pattern = "_other$") ~ "text", TRUE ~ "guess")
 
-df_raw_data <- readxl::read_excel(path = data_path, col_types = c_types, na = c("NA", "N/A", "n/a")) #|> 
-  #mutate(across(.cols = -c(contains(cols_to_escape)), 
-  #              .fns = ~ifelse(str_detect(string = ., 
-  #                                        pattern = fixed(pattern = "N/A", ignore_case = TRUE)), "NA",.))) |> 
-  #rename_with(~str_replace(string = .x, pattern = "\\-|\\.", replacement = "_")) |> 
-  #rename_with(~str_replace(string = .x, pattern = "\\ ", replacement = "")) |> 
-  #mutate(across(.cols = -c(contains(cols_to_escape)), 
-  #              .fns = ~str_replace(string = ., pattern = "\\-|\\.", replacement = "_")))|> 
-  #mutate(across(.cols = -c(contains(cols_to_escape)), 
+df_raw_data <- readxl::read_excel(path = data_path, col_types = c_types, na = c("NA", "N/A", "n/a"))#|> 
+  # mutate(across(.cols = -c(contains(cols_to_escape)),
+  #              .fns = ~ifelse(str_detect(string = .,
+  #                                        pattern = fixed(pattern = "N/A", ignore_case = TRUE)), "NA",.))) |>
+  # rename_with(~str_replace(string = .x, pattern = "\\-|\\.", replacement = "_")) |>
+  # rename_with(~str_replace(string = .x, pattern = "\\ ", replacement = "")) |>
+  # mutate(across(.cols = -c(contains(cols_to_escape)),
+  #              .fns = ~str_replace(string = ., pattern = "\\-|\\.", replacement = "_")))|>
+  # mutate(across(.cols = -c(contains(cols_to_escape)),
   #              .fns = ~str_replace(string = ., pattern = "\\ ", replacement = "")))
 
 # loops
@@ -74,11 +84,13 @@ vars_to_remove_from_data = c("deviceid", "audit", "audit_URL", "instance_name", 
 df_cleaning_log_main <-  df_cleaning_log |> 
   filter(is.na(sheet))
 
-df_cleaning_step <- supporteR::cleaning_support(input_df_raw_data = df_raw_data |> select(-starts_with("healthcare_seek")),
+df_cleaning_step <- supporteR::cleaning_support(input_df_raw_data = df_raw_data |> select(-starts_with("healthcare_seek"
+                                                                                                       )),
                                                 input_df_survey = df_survey,
                                                 input_df_choices = df_choices,
                                                 input_df_cleaning_log = df_cleaning_log_main, 
                                                 input_vars_to_remove_from_data = vars_to_remove_from_data) 
+
 
 df_cleaned_data <- df_cleaning_step 
 intermediate_cols <- c("lcsi_stress1", "lcsi_stress2", "lcsi_stress3", "lcsi_stress4", "lcsi_crisis1", "lcsi_crisis2", "lcsi_crisis3", "lcsi_emergency1", "lcsi_emergency2", "lcsi_emergency3", "lcsi_stress_yes", "lcsi_stress_exhaust", "lcsi_stress", "lcsi_crisis_yes", "lcsi_crisis_exhaust", "lcsi_crisis", "lcsi_emergency_yes", "lcsi_emergency_exhaust", "lcsi_emergency", "lcsi_cat_yes", "lcsi_cat_exhaust")
