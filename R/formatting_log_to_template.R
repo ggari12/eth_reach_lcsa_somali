@@ -1,6 +1,6 @@
 ################################################################################
 # read in log and data
-
+rm(list = ls())
 library(tidyverse)
 library(lubridate)
 library(glue)
@@ -8,14 +8,18 @@ library(supporteR)
 library(openxlsx)
 
 options("openxlsx.borderStyle" = "thin")
-
+options("openxlsx.dateFormat" = "dd/mm/yyyy")
 # Read data and checking log 
+# 
+# df_cleaning_log <- read_csv("inputs/combined_checks_eth_lcsa_somali_GG2.csv", col_types = cols(sheet = "c", index = "i")) |> 
+#   filter(reviewed %in% c("1"))
 
-df_cleaning_log <- read_csv("inputs/combined_checks_eth_lcsa_somali_GG2.csv", col_types = cols(sheet = "c", index = "i")) |> 
+data_path <- "outputs/combined_checks_eth_lcsa_somali_GG2_Carlos.xlsx"
+df_cleaning_log <- readxl::read_excel(data_path, col_types = "text", na = "NA")|>
   filter(reviewed %in% c("1"))
 
 # raw data
-loc_data <- "inputs/REACH_ETH_LCSA_Somali_data.xlsx"
+loc_data <- "inputs/REACH_ETH_LCSA_Somali_data .xlsx"
 
 cols_to_escape <- c("index", "start", "end", "today", "starttime",	"endtime", "_submission_time", "_submission__submission_time")
 
