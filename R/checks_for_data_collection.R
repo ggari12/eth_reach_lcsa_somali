@@ -1,4 +1,5 @@
 ###############################################################################
+
 # checks for data collection
 # read packages
 library(tidyverse)
@@ -10,7 +11,7 @@ source("R/composite_indicators.R")
 
 # read data and tool ----------------------------------------------------------
 # data
-data_path <- "inputs/REACH_ETH_LCSA_Somali_data.xlsx"
+data_path <- "inputs/REACH_ETH_LCSA_Somali_data .xlsx"
 
 df_tool_data <- readxl::read_excel(data_path) |>  
   mutate(start = as_datetime(start),
