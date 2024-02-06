@@ -208,7 +208,7 @@ create_composite_indicators_roster <- function(input_df) {
       ind_age>=18~"adults_18+"
     ),
     i.individual_genre_cat=case_when(
-      ind_age<13 & ind_gender =="female"~"NA",
+      ind_age<13 & ind_gender =="female"~"women aged 12 and under",
       ind_age>=13 & ind_gender =="female"~"woman aged 13 over"
     ),
    i.individual_age_school_cat = case_when(
