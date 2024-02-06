@@ -34,7 +34,7 @@ df_cleaning_log <- readxl::read_excel(data_path, col_types = "text", na = "NA")|
   select(uuid, type, name, value, issue_id, sheet, index, relevant, issue)
 
 # raw data
-data_path <- "inputs/REACH_ETH_LCSA_Somali_data .xlsx"
+data_path <- "inputs/REACH_ETH_LCSA_Somali_data.xlsx"
 
 cols_to_escape <- c("index", "start", "end", "today", "starttime", "endtime", "_submission_time", "_submission__submission_time")
 
