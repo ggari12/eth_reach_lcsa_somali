@@ -7,7 +7,7 @@ library(healthyr)
 getwd()
 
 # Load and process household data
-df <- readxl::read_xlsx("inputs/clean_data_eth_lcsa_somali.xlsx", sheet = "cleaned_main_data")
+df <- readxl::read_xlsx("inputs/20240202_clean_data_eth_lcsa_somali.xlsx", sheet = "cleaned_main_data")
 
 df2 <- df %>%
   dplyr::group_by(hh_zone, pop_group) %>%
