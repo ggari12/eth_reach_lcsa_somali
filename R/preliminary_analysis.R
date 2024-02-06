@@ -11,7 +11,7 @@ getwd()
 # devtools::install_github("twesigye10/supporteR")
 
 # clean data
-data_path <- "inputs/clean_data_eth_lcsa_somali.xlsx"
+data_path <- "inputs/20240202_clean_data_eth_lcsa_somali.xlsx"
 weight_table <- readxl::read_excel("inputs/data_eth_lcsa_somali_weighted.xlsx")|>
   dplyr::group_by(hh_zone, pop_group)
 
@@ -38,7 +38,8 @@ loop_support_data <- df_main_clean_data_with_weights|>
 
 #Load loop
 
-health_loop <- readxl::read_excel(path = data_path, sheet = "cleaned_health_loop", na = "NA") 
+health_loop <- readxl::read_excel(path = data_path, sheet = "cleaned_health_loop", na = "NA")
+
 df_health_clean_data <- loop_support_data |> 
   inner_join(health_loop, by = c("uuid" = "_submission__uuid") ) 
 
@@ -72,17 +73,20 @@ df_main_analysis <- analysis_after_survey_creation(input_svy_obj = ref_svy,
                                                    input_dap = dap) |> 
   dplyr::mutate(level = "Household")
 
+
 # health loop -------------------------------------------------------------
 
 
 
 # set up design object
-#ref_svy_health_loop <- as_survey(.data = df_health_clean_data)
-# analysis
-#df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_svy_health_loop,
-#                                                          input_dap = dap) |> 
-#  mutate(level = "Individual")
+ref_svy_health_loop <- as_survey(.data = df_health_clean_data, strata = strata, weights = weights)
 
+# analysis
+df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_svy_health_loop,
+                                                         input_dap = dap |>
+                                                          filter(!variable %in% c("respondent_age"))
+                                                         )|>
+ mutate(level = "Individual")
 
 
 
@@ -100,6 +104,8 @@ df_dap_roster <- bind_rows(tibble::tribble(~variable,
   pivot_longer(cols = starts_with("subset"), names_to = "subset_no", values_to = "subset_1") |> 
   filter(!is.na(subset_1), !subset_1 %in% c("NA")) |> 
   select(-subset_no)
+
+
 
 # df_main_pivot <- df_main_clean_data_with_weights |> 
 #   pivot_longer(cols = num_males_0to6:num_females_66plusyrs, names_to = "i.num_gender_age", values_to = "i.hh_size_based_on_gender_age")
@@ -119,11 +125,11 @@ ref_svy_roster <- as_survey(.data = df_roster_clean_data, strata = strata, weigh
 df_analysis_roster <- analysis_after_survey_creation(input_svy_obj = ref_svy_roster,
                                                      input_dap = df_dap_roster ) |> 
   mutate(level = "Individual")
-
 view(df_analysis_roster)
+
 # merge and format analysis ----------------------------------------------------------
 
-combined_analysis <- bind_rows(df_main_analysis, df_analysis_health_loop)
+combined_analysis <- bind_rows(df_main_analysis, df_analysis_roster)
 
 
 integer_cols_i <- c("i.fcs", "i.rcsi", "i.hhs")
@@ -157,5 +163,5 @@ full_analysis_long <- combined_analysis |>
 
 write_csv(full_analysis_long, paste0("outputs/", butteR::date_file_prefix(), "_full_analysis_lf_eth_lcsa_somali.csv"), na="")
 write_csv(full_analysis_long, paste0("outputs/full_analysis_lf_eth_lcsa_somali.csv"), na="")
-write_csv(df_main_analysis, paste0("outputscombined_analysis_lf_eth_somali.csv"), na="")
+write_csv(df_main_analysis, paste0("outputs/", butteR::date_file_prefix(), "combined_analysis_lf_eth_somali.csv"), na="")
 ###############################################################################
