@@ -19,7 +19,7 @@ df_cleaning_log <- readxl::read_excel(data_path, col_types = "text", na = "NA")|
   filter(reviewed %in% c("1"))
 
 # raw data
-loc_data <- "inputs/REACH_ETH_LCSA_Somali_data .xlsx"
+loc_data <- "inputs/REACH_ETH_LCSA_Somali_data.xlsx"
 
 cols_to_escape <- c("index", "start", "end", "today", "starttime",	"endtime", "_submission_time", "_submission__submission_time")
 
