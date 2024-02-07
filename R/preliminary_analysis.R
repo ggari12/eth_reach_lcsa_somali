@@ -83,9 +83,9 @@ ref_svy_health_loop <- as_survey(.data = df_health_clean_data, strata = strata, 
 
 # analysis
 df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_svy_health_loop,
-                                                         input_dap = dap |>
-                                                          filter(!variable %in% c("respondent_age"))
-                                                         )|>
+                                                         input_dap = dap)|>
+                                                         
+                                                        
  mutate(level = "Individual")
 
 
