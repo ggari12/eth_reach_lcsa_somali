@@ -1,3 +1,4 @@
+rm(list = ls())
 library(tidyverse)
 library(openxlsx)
 
@@ -71,7 +72,6 @@ df_analysis <- read_csv("outputs/full_analysis_lf_eth_lcsa_somali.csv") |>
            )
 
 
-view(df_analysis)
 # identify indicators
 
 data_list<- read_excel_allsheets("inputs/ETH2305_20231026_Somali_Livelihood_DAP_FINAL_internal.xlsx")
@@ -85,7 +85,13 @@ df_dap_questions <-aa |>
   rename(name="kobo_code")|> 
     mutate(sector = str_replace_all(string = sector, pattern = "\\/|\\?", replacement = "_"),
            sector = case_when(sector %in% c("Presentation and consent", "Respondent information","HH information") ~ "Household data",
-                                              sector %in% c("Cash & Markets, Livelihoods", "Food Security, Livelihoods", "livelihood") ~ "Food Security, Livelihoods, Cash and Markets",
+                                              sector %in% c("Cash & Markets",
+                                                            "Cash & Markets, Livelihoods",
+                                                            "Livelihoods", 
+                                                            "livelihood",
+                                                            "Food Security, Livelihoods") ~ "Cash and Markets,Livelihoods ",
+                                              sector %in% c( "Food Security","Shock or vulnerability") ~ "Food Security",
+                                              
                                               TRUE ~ sector)
     )
 
@@ -101,19 +107,26 @@ df_analysis_dap_info <- df_analysis |>
                   select(name, sector, indicator, qn_number), by = c("variable" = "name")) |> 
     mutate(response_lable = recode(analysis_choice_id, !!!setNames(df_choices_support$choice_label, df_choices_support$survey_choice_id)),
            choices = ifelse(is.na(response_lable), `choices/options`, response_lable),
-           subset_1_val_label = recode(subset_1_val, !!!setNames(df_choices$choice_label, df_choices$choice_name)),
-           subset_1_val_label =  ifelse(is.na(subset_1_val_label), "Zonal", subset_1_val_label),
+           subset_1_val = ifelse(is.na(subset_1_val), "All", subset_1_val),
+           #subset_1_val_label = recode(subset_1_val, !!!setNames(df_choices$choice_label, df_choices$choice_name)),
+           #subset_1_val_label =  ifelse(is.na(subset_1_val_label), "Zone", subset_1_val_label),
            sector = ifelse(is.na(sector) & variable %in% df_support_composite_grps$composite_code, recode(variable, !!!setNames(df_support_composite_grps$grp_label, df_support_composite_grps$composite_code)), sector), 
            select_type = ifelse((is.na(select_type)) & variable %in% df_support_composite_grps$composite_code, recode(variable, !!!setNames(df_support_composite_grps$composite_type, df_support_composite_grps$composite_code)), select_type),
            choices = ifelse(variable %in% df_support_integer_col_labs$variable, recode(variable, !!!setNames(df_support_integer_col_labs$integer_column_label, df_support_integer_col_labs$variable)), choices),
-           sector = case_when(sector %in% c("Cash & Markets, Livelihoods", "Food Security, Livelihoods", "livelihood") ~ "Food Security, Livelihoods, Cash and Markets",
-                                              sector %in% c("Presentation and consent", "Respondent information","HH information") ~ "Household data",
+           sector = case_when(sector %in% c("Presentation and consent", "Respondent information","HH information") ~ "Household data",
+                                                 sector %in% c("Cash & Markets",
+                                                               "Cash & Markets, Livelihoods",
+                                                               "Livelihoods", 
+                                                               "livelihood",
+                                                               "Food Security, Livelihoods") ~ "Cash and Markets,Livelihoods ",
+                                                 sector %in% c("Shock or vulnerability","Food security") ~ "Food Security",
                                              
                                               TRUE ~ sector)
            ) |> 
-    select(-c(n_unweighted, subset_1_name, subset_1_val)) |> 
+    select(-c(n_unweighted, subset_1_name)) |> 
     filter(!is.na(sector))
 
+view(df_analysis_dap_info)
 
 # split data based on groups or sectors
 output <- split(df_analysis_dap_info, df_analysis_dap_info$sector)
@@ -128,7 +141,7 @@ number_2digit_style <- openxlsx::createStyle(numFmt = "0.00")
 number_1digit_style <- openxlsx::createStyle(numFmt = "0.0")
 number_style <- openxlsx::createStyle(numFmt = "0")
 
-cols_for_special_formatting <- c("Zonal", "ET0503", "ET0504", "ET0505", "ET0506", "ET0507", "ET0508", "GET0509", "ET05010","ET05011")
+cols_for_special_formatting <- c("Zone", "Godius")
 
 for (i in 1:length(output)) {
     addWorksheet(wb, sheetName=names(output[i]))
@@ -142,7 +155,7 @@ for (i in 1:length(output)) {
     
     # get current data for the group or sector
     current_sheet_data <- output[[i]] |> 
-        pivot_wider(names_from = subset_1_val_label, values_from = `Results(mean/percentage)`) |> 
+        pivot_wider(names_from = subset_1_val, values_from = `Results(mean/percentage)`) |> 
         arrange(qn_number) |> 
         mutate(row_id = row_number())
     
@@ -160,25 +173,15 @@ for (i in 1:length(output)) {
         get_question <- current_variable_data |> select(Question) |> unique() |> pull()
         get_qn_type <- current_variable_data |> select(select_type) |> unique() |> pull()
         
-        if(get_qn_type %in% c("select_one", "select one", "select_multiple", "select multiple")){
-            class(current_variable_data$Zonal) <- "percentage"
-            class(current_variable_data$Gasera) <- "percentage"
-            class(current_variable_data$Sinana) <- "percentage"
-            class(current_variable_data$Goba) <- "percentage"
-            class(current_variable_data$`Harena Buluk`) <- "percentage"
-            class(current_variable_data$`Delo Mena`) <- "percentage"
-            class(current_variable_data$Berbere) <- "percentage"
-            class(current_variable_data$Goro) <- "percentage"
-        }else{
-            class(current_variable_data$Zonal) <- "numeric"
-            class(current_variable_data$Gasera) <- "numeric"
-            class(current_variable_data$Sinana) <- "numeric"
-            class(current_variable_data$Goba) <- "numeric"
-            class(current_variable_data$`Harena Buluk`) <- "numeric"
-            class(current_variable_data$`Delo Mena`) <- "numeric"
-            class(current_variable_data$Berbere) <- "numeric"
-            class(current_variable_data$Goro) <- "numeric"
-        }
+        # if(get_qn_type %in% c("select_one", "select one", "select_multiple", "select multiple")){
+        #     class(current_variable_data$Zone) <- "percentage"
+        #     class(current_variable_data$Godius) <- "percentage"
+        #     
+        # }else{
+        #     class(current_variable_data$Zone) <- "numeric"
+        #     class(current_variable_data$Godius) <- "numeric"
+        #     
+        # }
         
         current_row_start <- previous_row_end + 3
         
@@ -213,9 +216,10 @@ for (i in 1:length(output)) {
 }
 
 # worksheets order
-worksheetOrder(wb) <- c(6, 4, 7, 8, 12, 5, 3, 9, 10, 11, 2, 1)
+
+worksheetOrder(wb) <- c(6, 4, 7, 8, 5, 3, 9, 2, 1)
 
 activeSheet(wb) <- 6
 
-saveWorkbook(wb, paste0("outputs/", butteR::date_file_prefix(),"_formatted_analysis_eth_msna_oromia.xlsx"), overwrite = TRUE)
-openXL(file = paste0("outputs/", butteR::date_file_prefix(),"_formatted_analysis_eth_msna_oromia.xlsx"))
+saveWorkbook(wb, paste0("outputs/", butteR::date_file_prefix(),"_formatted_analysis_eth_somali.xlsx"), overwrite = TRUE)
+openXL(file = paste0("outputs/", butteR::date_file_prefix(),"_formatted_analysis_eth_somali.xlsx"))
