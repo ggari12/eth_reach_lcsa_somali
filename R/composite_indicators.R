@@ -60,6 +60,7 @@ create_composite_indicators <- function(input_df) {
                                  i.hhs <= 3 ~ "Moderate",
                                  i.hhs == 4 ~ "Severe",
                                  i.hhs <= 6 ~ "Very severe"),
+           
            #i.hh_composition_size = int.hh_size,
            i.hoh_gender = ifelse(is.na(hoh_gender), respondent_gender, hoh_gender),
            i.hoh_age = ifelse(is.na(hoh_age), respondent_age, hoh_age),
@@ -69,6 +70,102 @@ create_composite_indicators <- function(input_df) {
                                                 chronic_illness_female > 0 ~ "yes"), 
            i.pregnant_lac_women = case_when(pregnant_lac_women == 0 ~ "no",
                                             pregnant_lac_women > 0 ~ "yes"), 
+           
+           i.fs_meals_cat = case_when(fs_meals==1~"meals_1",
+                                      fs_meals == 2~"meals_2",
+                                      fs_meals == 3~"meals_3",
+                                      fs_meals ==4~"meals_4",
+                                      fs_meals ==5~"meals_5"),
+           
+           i.fs_meals_U5 = case_when(fs_meals_U5==1~"meals_U5_1",
+                                     fs_meals_U5 == 2~"meals_U5_2",
+                                     fs_meals_U5 == 3~"meals_U5_3",
+                                     fs_meals_U5 ==4~"meals_U5_4",
+                                     fs_meals_U5 ==5~"meals_U5_5"),
+       
+           ##in.wash_water_quantity
+           int.wash_water_quantity = case_when(wash_water_quantity=="never"~0,
+                                               wash_water_quantity=="rarely"~1,
+                                               wash_water_quantity=="sometimes"~2,
+                                               wash_water_quantity %in% c("often","always")~3
+             
+           ),
+           int.wash_water_quantity2 = case_when(wash_water_quantity2=="never"~0,
+                                               wash_water_quantity2=="rarely"~1,
+                                               wash_water_quantity2=="sometimes"~2,
+                                               wash_water_quantity2 %in% c("often","always")~3
+                                               
+           ),
+           int.wash_water_quantity3 = case_when(wash_water_quantity3=="never"~0,
+                                               wash_water_quantity3=="rarely"~1,
+                                               wash_water_quantity3=="sometimes"~2,
+                                               wash_water_quantity3 %in% c("often","always")~3
+                                               
+           ),
+           int.wash_water_quantity4 = case_when(wash_water_quantity4=="never"~0,
+                                               wash_water_quantity4=="rarely"~1,
+                                               wash_water_quantity4=="sometimes"~2,
+                                               wash_water_quantity4 %in% c("often","always")~3
+                                               
+           ),
+           int.wash_water_quantity5 = case_when(wash_water_quantity5=="never"~0,
+                                               wash_water_quantity5=="rarely"~1,
+                                               wash_water_quantity5=="sometimes"~2,
+                                               wash_water_quantity5 %in% c("often", "always")~3
+                                               
+           ),
+           int.wash_water_quantity6 = case_when(wash_water_quantity6=="never"~0,
+                                               wash_water_quantity6=="rarely"~1,
+                                               wash_water_quantity6=="sometimes"~2,
+                                               wash_water_quantity6 %in% c("often", "always")~3
+                                               
+           ),
+           int.wash_water_quantity7 = case_when(wash_water_quantity7=="never"~0,
+                                               wash_water_quantity7=="rarely"~1,
+                                               wash_water_quantity7=="sometimes"~2,
+                                               wash_water_quantity7 %in% c("often", "always")~3
+                                               
+           ),
+           int.wash_water_quantity8 = case_when(wash_water_quantity8=="never"~0,
+                                               wash_water_quantity8=="rarely"~1,
+                                               wash_water_quantity8=="sometimes"~2,
+                                               wash_water_quantity8 %in% c("often","always")~3
+                                               
+           ),
+           int.wash_water_quantity9 = case_when(wash_water_quantity9=="never"~0,
+                                               wash_water_quantity9=="rarely"~1,
+                                               wash_water_quantity9=="sometimes"~2,
+                                               wash_water_quantity9 %in% c("often", "always")~3
+                                               
+           ),
+           int.wash_water_quantity10 = case_when(wash_water_quantity10=="never"~0,
+                                               wash_water_quantity10=="rarely"~1,
+                                               wash_water_quantity10=="sometimes"~2,
+                                               wash_water_quantity10 %in% c("often","always")~3
+                                               
+           ),
+           int.wash_water_quantity11 = case_when(wash_water_quantity11=="never"~0,
+                                               wash_water_quantity11=="rarely"~1,
+                                               wash_water_quantity11=="sometimes"~2,
+                                               wash_water_quantity11 %in% c("often","always")~3
+                                               
+           ),
+           int.wash_water_quantity12 = case_when(wash_water_quantity12=="never"~0,
+                                               wash_water_quantity12=="rarely"~1,
+                                               wash_water_quantity12=="sometimes"~2,
+                                               wash_water_quantity12 %in% c("often", "always")~3
+                                               
+           ),
+           ##wash_water_score
+           wash_water_score = sum(c_across(int.wash_water_quantity:int.wash_water_quantity12), na.rm = T),
+           
+           ##i.wash_water_secure
+           i.wash_warter_secure = case_when(
+                                            wash_water_score < 11 ~ "water_secure",
+                                            wash_water_score>11~"water_insecure"
+             
+           ),
+        
            i.fc_matrix = case_when( 
              # 1 - 5
              i.hhs == 0 & i.rcsi < 4 & i.fcs > 35 ~ 1,
@@ -197,7 +294,7 @@ create_composite_indicators <- function(input_df) {
                             no_val = "no_had_no_need",
                             exhausted_val = "no_exhausted",
                             not_applicable_val = "not_applicable") |> 
-    rename(i.lcsi_cat = lcsi_cat ) |> 
+    # rename(i.lcsi_cat = lcsi_cat ) |> 
     select(-c(starts_with("int.")))
 }
 
