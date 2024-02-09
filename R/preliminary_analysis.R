@@ -1,5 +1,5 @@
 ###############################################################################
-
+rm(list = ls())
 library(tidyverse)
 library(srvyr)
 library(supporteR)  
@@ -19,7 +19,7 @@ data_nms <- names(readxl::read_excel(path = data_path, n_max = 3000, sheet = "cl
 c_types <- ifelse(str_detect(string = data_nms, pattern = "_other$"), "text", "guess")
 
 df_main_clean_data <- readxl::read_excel(path = data_path, sheet = "cleaned_main_data", col_types = c_types, na = "NA") |> 
-  dplyr::select(-starts_with("i.")) |> 
+  # dplyr::select(-starts_with("i.")) |> 
   create_composite_indicators() |> 
   dplyr::mutate(strata = hh_woreda) |> 
   dplyr::mutate(across(.cols = starts_with("i."), .fns = ~ ifelse((is.infinite(.x)|is.nan(.x)), NA, .)))
@@ -79,14 +79,14 @@ df_main_analysis <- analysis_after_survey_creation(input_svy_obj = ref_svy,
 
 
 # set up design object
-ref_svy_health_loop <- as_survey(.data = df_health_clean_data, strata = strata, weights = weights)
-
-# analysis
-df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_svy_health_loop,
-                                                         input_dap = dap)|>
-                                                         
-                                                        
- mutate(level = "Individual")
+# ref_svy_health_loop <- as_survey(.data = df_health_clean_data, strata = strata, weights = weights)
+# 
+# # analysis
+# df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_svy_health_loop,
+#                                                          input_dap = dap)|>
+#                                                          
+#                                                         
+#  mutate(level = "Individual")
 
 
 
@@ -125,14 +125,22 @@ ref_svy_roster <- as_survey(.data = df_roster_clean_data, strata = strata, weigh
 df_analysis_roster <- analysis_after_survey_creation(input_svy_obj = ref_svy_roster,
                                                      input_dap = df_dap_roster ) |> 
   mutate(level = "Individual")
-view(df_analysis_roster)
+
 
 # merge and format analysis ----------------------------------------------------------
 
 combined_analysis <- bind_rows(df_main_analysis, df_analysis_roster)
 
 
-integer_cols_i <- c("i.fcs", "i.rcsi", "i.hhs")
+integer_cols_i <- c("i.fcs", 
+                    "i.rcsi", 
+                    "i.hhs",
+                    "i.chronic_illness_male",
+                    "i.chronic_illness_female",
+                    "i.pregnant_lac_women",
+                    "i.fs_meals_cat",
+                    "i.fs_meals_U5",
+                    "i.respondent_age")
 integer_cols_int <- c("int.fcs", "int.rcsi", "int.hhs")
 
 # formatting the analysis, adding question labels
