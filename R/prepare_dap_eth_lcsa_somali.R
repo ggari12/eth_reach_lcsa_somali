@@ -30,7 +30,7 @@ df_dap_file_data_composites <- df_tool_survey |>
          #subset_2 = "hh_woreda",
          subset_3 = "pop_group",
          subset_4 = "respondent_gender",
-         subset_5 = "respondent_age") |> 
+         subset_5 = "i.respondent_age") |> 
   pivot_longer(cols = starts_with("subset"), names_to = "subset_no", values_to = "subset_1") |> 
   filter(!is.na(subset_1), !subset_1 %in% c("NA")) |> 
   select(-subset_no)
