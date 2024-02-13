@@ -51,7 +51,7 @@ df_support_integer_col_labs <- readxl::read_excel("support_files/support integer
     filter(!is.na(integer_column_label))
 
 # analysis
-df_analysis <- read_csv("outputs/full_analysis_lf_eth_lcsa_somali.csv") |> 
+df_analysis <- read_csv("outputs/full_analysis_lf_eth_lcsa_somali.csv")|> 
     mutate(analysis_choice_id = case_when(select_type %in% c("select_multiple", "select multiple") ~ str_replace(string = `choices/options`, 
                                                                                                                  pattern = "\\/", replacement = "_"),
                                           select_type %in% c("select_one", "select one") ~ paste0(variable, "_", `choices/options`)),
@@ -135,7 +135,7 @@ output <- split(df_analysis_dap_info, df_analysis_dap_info$sector)
 names(output)
 wb <- createWorkbook()
 
-hs1 <- createStyle(fgFill = "#EE5859", halign = "CENTER", textDecoration = "Bold", fontColour = "white", fontSize = 14, wrapText = T)
+hs1 <- createStyle(fgFill = "#EE5859", halign = "CENTER", textDecoration = "Bold", fontColour = "white", fontSize = 16, wrapText = T)
 hs2 <- createStyle(fgFill = "#808080", halign = "CENTER", textDecoration = "Bold", fontColour = "white", wrapText = T)
 hs3 <- createStyle(fgFill = "#EE5859", halign = "CENTER", textDecoration = "Bold", border = "Bottom", fontColour = "white")
 # numbers
@@ -153,7 +153,7 @@ for (i in 1:length(output)) {
     writeData(wb, sheet = names(output[i]), names(output[i]), startCol = 1, startRow = 1, headerStyle = hs1)
     addStyle(wb, sheet = names(output[i]), hs1, rows = 1, cols = 1:10, gridExpand = TRUE)
     
-    setColWidths(wb = wb, sheet = names(output[i]), cols = 2, widths = 60)
+    setColWidths(wb = wb, sheet = names(output[i]), cols = 2, widths = 90)
     
     # get current data for the group or sector
     current_sheet_data <- output[[i]] |> 
@@ -186,6 +186,32 @@ for (i in 1:length(output)) {
                                                 class(current_variable_data$Liban) <- "percentage"
                                                       class(current_variable_data$Nogob) <- "percentage"
                                                             class(current_variable_data$Shabelle) <- "percentage"
+                                                            class(current_variable_data$age_18_24) <- "percentage"
+                                                                  class(current_variable_data$age_25_39) <- "percentage"
+                                                                        class(current_variable_data$age_40_59) <- "percentage"	
+                                                                              class(current_variable_data$`age_60+`)	<- "percentage"
+                                                                                      class(current_variable_data$`Host Communities`) <- "percentage"
+                                                                                            class(current_variable_data$IDP) <- "percentage"
+                                                                                                  class(current_variable_data$female)	<- "percentage"
+                                                                                                        class(current_variable_data$male) <- "percentage"
+                                                                                                        
+                                                                                                        class(current_variable_data$Afder_host) <- "percentage"	
+                                                                                                              class(current_variable_data$Afder_idp) <- "percentage"	
+                                                                                                                    class(current_variable_data$Daawa_host) <- "percentage"	
+                                                                                                                          class(current_variable_data$Daawa_idp) <- "percentage"	
+                                                                                                                                class(current_variable_data$Doolo_host) <- "percentage"	
+                                                                                                                                      class(current_variable_data$Doolo_idp) <- "percentage"	
+                                                                                                                                            class(current_variable_data$Erer_host) <- "percentage"	
+                                                                                                                                                  class(current_variable_data$Jarar_host) <- "percentage"	
+                                                                                                                                                        class(current_variable_data$Jarar_idp) <- "percentage"	
+                                                                                                                                                              class(current_variable_data$Korahe_host) <- "percentage"	
+                                                                                                                                                                    class(current_variable_data$Korahe_idp) <- "percentage"	
+                                                                                                                                                                          class(current_variable_data$Liban_host) <- "percentage"	
+                                                                                                                                                                                class(current_variable_data$Liban_idp) <- "percentage"	
+                                                                                                                                                                                      class(current_variable_data$Nogob_host) <- "percentage"	
+                                                                                                                                                                                            class(current_variable_data$Nogob_idp) <- "percentage"	
+                                                                                                                                                                                                  class(current_variable_data$Shabelle_host) <- "percentage"	
+                                                                                                                                                                                                        class(current_variable_data$Shabelle_idp) <- "percentage"
 
         }else{
             class(current_variable_data$All) <- "numeric"
@@ -198,7 +224,34 @@ for (i in 1:length(output)) {
                                                 class(current_variable_data$Liban) <- "numeric"
                                                       class(current_variable_data$Nogob) <- "numeric"
                                                             class(current_variable_data$Shabelle) <- "numeric"
-
+                                                            
+                                                            
+                                                            class(current_variable_data$age_18_24) <- "numeric"	
+                                                                  class(current_variable_data$age_25_39) <- "numeric"	
+                                                                        class(current_variable_data$age_40_59) <- "numeric"	
+                                                                              class(current_variable_data$`age_60+`) <- "numeric"
+                                                                                      class(current_variable_data$`Host Communities`) <- "numeric"	
+                                                                                            class(current_variable_data$IDP) <- "numeric"	
+                                                                                                  class(current_variable_data$female) <- "numeric"
+                                                                                                        class(current_variable_data$male) <- "numeric"
+                                                                                                        
+                                                                                                        class(current_variable_data$Afder_host) <- "numeric"	
+                                                                                                              class(current_variable_data$Afder_idp) <- "numeric"	
+                                                                                                                    class(current_variable_data$Daawa_host) <- "numeric"	
+                                                                                                                          class(current_variable_data$Daawa_idp) <- "numeric"	
+                                                                                                                                class(current_variable_data$Doolo_host) <- "numeric"	
+                                                                                                                                      class(current_variable_data$Doolo_idp) <- "numeric"	
+                                                                                                                                            class(current_variable_data$Erer_host) <- "numeric"	
+                                                                                                                                                  class(current_variable_data$Jarar_host) <- "numeric"	
+                                                                                                                                                        class(current_variable_data$Jarar_idp) <- "numeric"	
+                                                                                                                                                              class(current_variable_data$Korahe_host) <- "numeric"	
+                                                                                                                                                                    class(current_variable_data$Korahe_idp) <- "numeric"	
+                                                                                                                                                                          class(current_variable_data$Liban_host) <- "numeric"	
+                                                                                                                                                                                class(current_variable_data$Liban_idp) <- "numeric"	
+                                                                                                                                                                                      class(current_variable_data$Nogob_host) <- "numeric"	
+                                                                                                                                                                                            class(current_variable_data$Nogob_idp) <- "numeric"	
+                                                                                                                                                                                                  class(current_variable_data$Shabelle_host) <- "numeric"	
+                                                                                                                                                                                                        class(current_variable_data$Shabelle_idp) <- "numeric"
         }
 
         current_row_start <- previous_row_end + 3
@@ -206,9 +259,9 @@ for (i in 1:length(output)) {
         print(current_row_start)
         
         # add header for variable
-        mergeCells(wb, sheet = names(output[i]), rows = previous_row_end + 2, cols = 1:10)
+        mergeCells(wb, sheet = names(output[i]), rows = previous_row_end + 2, cols = 1:8)
         writeData(wb, sheet = names(output[i]), get_question, startCol = 1, startRow = previous_row_end + 2)
-        addStyle(wb, sheet = names(output[i]), hs2, rows = previous_row_end + 2, cols = 1:10, gridExpand = TRUE)
+        addStyle(wb, sheet = names(output[i]), hs2, rows = previous_row_end + 2, cols = 1:8, gridExpand = TRUE)
         
         current_data_length <- max(current_variable_data$row_id) - min(current_variable_data$row_id)
         
@@ -235,9 +288,10 @@ for (i in 1:length(output)) {
 
 # worksheets order
 
-worksheetOrder(wb) <- c(1,2,3,4,5,6,7,8,9)
+worksheetOrder(wb) <- c(3,4,1,2,5,6,7,8,9)
 
-activeSheet(wb) <- 1
+activeSheet(wb) <- 3
 
 saveWorkbook(wb, paste0("outputs/", butteR::date_file_prefix(),"_formatted_analysis_eth_somali.xlsx"), overwrite = TRUE)
 openXL(file = paste0("outputs/", butteR::date_file_prefix(),"_formatted_analysis_eth_somali.xlsx"))
+
