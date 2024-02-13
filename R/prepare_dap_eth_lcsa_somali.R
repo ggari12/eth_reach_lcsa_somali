@@ -1,5 +1,6 @@
 ###############################################################################
 # read packages
+rm(list = ls())
 library(tidyverse)
 
 df_tool_survey <- readxl::read_excel(path = "inputs/REACH_ETH_LCSA_Somali_tool.xlsx", sheet = "survey")
@@ -24,10 +25,20 @@ df_dap_file_data_composites <- df_tool_survey |>
                             "i.rcsi_cat",
                             "i.hhs",
                             "i.hhs_cat",
+                            "i.chronic_illness_male",
+                            "i.chronic_illness_female",
+                            "i.pregnant_lac_women",
+                            "i.fs_meals_cat",
+                            "i.fs_meals_U5",
+                            "i.hh_zone",
+                            "i.wash_warter_secure",
+                            "i.wash_watertime",
+                            "i.lcsi_cat",
+                            "i.respondent_age",
                             "i.fewsnet_phase")) |> 
   mutate(split = "all",
          subset_1 = "zone1",
-         #subset_2 = "hh_woreda",
+         subset_2 = "group_zone",
          subset_3 = "pop_group",
          subset_4 = "respondent_gender",
          subset_5 = "i.respondent_age") |> 
