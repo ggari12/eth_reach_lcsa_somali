@@ -1,5 +1,5 @@
 ###############################################################################
-
+rm(list = ls())
 library(tidyverse)
 library(srvyr)
 library(supporteR)  
@@ -11,30 +11,179 @@ getwd()
 # devtools::install_github("twesigye10/supporteR")
 
 # clean data
-data_path <- "inputs/20240202_clean_data_eth_lcsa_somali.xlsx"
+data_path <- "outputs/20240202_clean_data_eth_lcsa_somali.xlsx"
 weight_table <- readxl::read_excel("inputs/data_eth_lcsa_somali_weighted.xlsx")|>
-  dplyr::group_by(hh_zone, pop_group)
+  dplyr::group_by(hh_zone, pop_group)|>
+  mutate(hh_zone = case_when(hh_zone =="ET0508"~"Afder",
+                             hh_zone == "ET0511"~	"Daawa",
+                             hh_zone == "ET0507"~	"Doolo",
+                             hh_zone == "ET0504"~	"Erer",
+                             hh_zone == "ET0503"~	"Jarar",
+                             hh_zone == "ET0505"~	"Korahe",
+                             hh_zone == "ET0509"~	"Liban",
+                             hh_zone == "ET0510"~	"Nogob",
+                             hh_zone == "ET0506"~	"Shabelle"
+    
+  ))
 
 data_nms <- names(readxl::read_excel(path = data_path, n_max = 3000, sheet = "cleaned_main_data"))
 c_types <- ifelse(str_detect(string = data_nms, pattern = "_other$"), "text", "guess")
 
 df_main_clean_data <- readxl::read_excel(path = data_path, sheet = "cleaned_main_data", col_types = c_types, na = "NA") |> 
-  dplyr::select(-starts_with("i.")) |> 
+  # dplyr::select(-starts_with("i.")) |> 
   create_composite_indicators() |> 
-  dplyr::mutate(strata = hh_woreda) |> 
-  dplyr::mutate(across(.cols = starts_with("i."), .fns = ~ ifelse((is.infinite(.x)|is.nan(.x)), NA, .)))
-
+  dplyr::mutate(strata = hh_woreda,
+                hh_zone = case_when(hh_zone =="ET0508"~"Afder",
+                                    hh_zone == "ET0511"~	"Daawa",
+                                    hh_zone == "ET0507"~	"Doolo",
+                                    hh_zone == "ET0504"~	"Erer",
+                                    hh_zone == "ET0503"~	"Jarar",
+                                    hh_zone == "ET0505"~	"Korahe",
+                                    hh_zone == "ET0509"~	"Liban",
+                                    hh_zone == "ET0510"~	"Nogob",
+                                    hh_zone == "ET0506"~	"Shabelle"
+                                    
+                )) |>
+  mutate(
+    group_zone = case_when(
+      hh_zone=="Afder" & pop_group == "host"~"Afder_host",
+      hh_zone=="Afder" & pop_group == "idp"~"Afder_idp",
+      
+      hh_zone=="Daawa" & pop_group == "host"~"Daawa_host",
+      hh_zone=="Daawa" & pop_group == "idp"~"Daawa_idp",
+      
+      hh_zone=="Doolo" & pop_group == "host"~"Doolo_host",
+      hh_zone=="Doolo" & pop_group == "idp"~"Doolo_idp",
+      
+      hh_zone=="Erer" & pop_group == "host"~"Erer_host",
+      hh_zone=="Erer" & pop_group == "idp"~"Erer_idp",
+      
+      hh_zone=="Jarar" & pop_group == "host"~"Jarar_host",
+      hh_zone=="Jarar" & pop_group == "idp"~"Jarar_idp",
+      
+      hh_zone=="Korahe" & pop_group == "host"~"Korahe_host",
+      hh_zone=="Korahe" & pop_group == "idp"~"Korahe_idp",
+      
+      hh_zone=="Liban" & pop_group == "host"~"Liban_host",
+      hh_zone=="Liban" & pop_group == "idp"~"Liban_idp",
+      
+      hh_zone=="Nogob" & pop_group == "host"~"Nogob_host",
+      hh_zone=="Nogob" & pop_group == "idp"~"Nogob_idp",
+      
+      hh_zone=="Shabelle" & pop_group == "host"~"Shabelle_host",
+      hh_zone=="Shabelle" & pop_group == "idp"~"Shabelle_idp"
+    ))|> 
+  dplyr::mutate(across(.cols = starts_with("i."), .fns = ~ ifelse((is.infinite(.x)|is.nan(.x)), NA, .)))|>
+  mutate(
+         ##in.wash_water_quantity
+         int.wash_water_quantity = case_when(wash_water_quantity=="never"~ 0,
+                                             wash_water_quantity=="rarely"~1,
+                                             wash_water_quantity=="sometimes"~2,
+                                             wash_water_quantity %in% c("often","always")~3
+                                             
+         ),
+         int.wash_water_quantity2 = case_when(wash_water_quantity2=="never"~0,
+                                              wash_water_quantity2=="rarely"~1,
+                                              wash_water_quantity2=="sometimes"~2,
+                                              wash_water_quantity2 %in% c("often","always")~3
+                                              
+         ),
+         int.wash_water_quantity3 = case_when(wash_water_quantity3=="never"~0,
+                                              wash_water_quantity3=="rarely"~1,
+                                              wash_water_quantity3=="sometimes"~2,
+                                              wash_water_quantity3 %in% c("often","always")~3
+                                              
+         ),
+         int.wash_water_quantity4 = case_when(wash_water_quantity4=="never"~0,
+                                              wash_water_quantity4=="rarely"~1,
+                                              wash_water_quantity4=="sometimes"~2,
+                                              wash_water_quantity4 %in% c("often","always")~3
+                                              
+         ),
+         int.wash_water_quantity5 = case_when(wash_water_quantity5=="never"~0,
+                                              wash_water_quantity5=="rarely"~1,
+                                              wash_water_quantity5=="sometimes"~2,
+                                              wash_water_quantity5 %in% c("often", "always")~3
+                                              
+         ),
+         int.wash_water_quantity6 = case_when(wash_water_quantity6=="never"~0,
+                                              wash_water_quantity6=="rarely"~1,
+                                              wash_water_quantity6=="sometimes"~2,
+                                              wash_water_quantity6 %in% c("often", "always")~3
+                                              
+         ),
+         int.wash_water_quantity7 = case_when(wash_water_quantity7=="never"~0,
+                                              wash_water_quantity7=="rarely"~1,
+                                              wash_water_quantity7=="sometimes"~2,
+                                              wash_water_quantity7 %in% c("often", "always")~3
+                                              
+         ),
+         int.wash_water_quantity8 = case_when(wash_water_quantity8=="never"~0,
+                                              wash_water_quantity8=="rarely"~1,
+                                              wash_water_quantity8=="sometimes"~2,
+                                              wash_water_quantity8 %in% c("often","always")~3
+                                              
+         ),
+         int.wash_water_quantity9 = case_when(wash_water_quantity9=="never"~0,
+                                              wash_water_quantity9=="rarely"~1,
+                                              wash_water_quantity9=="sometimes"~2,
+                                              wash_water_quantity9 %in% c("often", "always")~3
+                                              
+         ),
+         int.wash_water_quantity10 = case_when(wash_water_quantity10=="never"~0,
+                                               wash_water_quantity10=="rarely"~1,
+                                               wash_water_quantity10=="sometimes"~2,
+                                               wash_water_quantity10 %in% c("often","always")~3
+                                               
+         ),
+         int.wash_water_quantity11 = case_when(wash_water_quantity11=="never"~0,
+                                               wash_water_quantity11=="rarely"~1,
+                                               wash_water_quantity11=="sometimes"~2,
+                                               wash_water_quantity11 %in% c("often","always")~3
+                                               
+         ),
+         int.wash_water_quantity12 = case_when(wash_water_quantity12=="never"~0,
+                                               wash_water_quantity12=="rarely"~1,
+                                               wash_water_quantity12=="sometimes"~2,
+                                               wash_water_quantity12 %in% c("often", "always")~3
+                                               
+         )                                   
+         )
+   ###  wash_water_score      
+df_main_clean_data$wash_water_score = rowSums(df_main_clean_data[ ,c("int.wash_water_quantity",
+                                           "int.wash_water_quantity2",
+                                           "int.wash_water_quantity3",
+                                           "int.wash_water_quantity4",
+                                           "int.wash_water_quantity5",
+                                           "int.wash_water_quantity6",
+                                          "int.wash_water_quantity7",
+                                           "int.wash_water_quantity8",
+                                           "int.wash_water_quantity9",
+                                           "int.wash_water_quantity10",
+                                           "int.wash_water_quantity11",
+                                           "int.wash_water_quantity12")
+                                           ], na.rm = T)
+##i.wash_water_secure         
+df_main_clean_data <- df_main_clean_data|>
+  mutate(i.wash_warter_secure = case_when(
+    wash_water_score < 11 ~ "water_secure",
+    wash_water_score>11~"water_insecure"
+  )
+  )
+    
 # add weights to data
 df_main_clean_data_with_weights <- df_main_clean_data |>
   dplyr::group_by(hh_zone, pop_group)|>
   left_join(weight_table, by = c("hh_zone", "pop_group"))|>
   dplyr::rename(zone1="hh_zone")
 
-
 writexl::write_xlsx(df_main_clean_data_with_weights, "inputs/clean_data_eth_lcsa_somali_weighted.xlsx")
 
+
+
 loop_support_data <- df_main_clean_data_with_weights|> 
-  dplyr::select(uuid, hh_woreda, i.hoh_gender,strata, weights)
+  dplyr::select(uuid,zone1,respondent_gender,i.respondent_age, group_zone, strata, weights)
+
 
 #Load loop
 
@@ -61,7 +210,6 @@ df_tool_data_support <- df_survey |>
 
 # dap
 dap <- read_csv("inputs/r_dap_eth_lcsa_somali.csv")
-
 # main dataset ------------------------------------------------------------
 
 # set up design object
@@ -74,36 +222,49 @@ df_main_analysis <- analysis_after_survey_creation(input_svy_obj = ref_svy,
   dplyr::mutate(level = "Household")
 
 
-# health loop -------------------------------------------------------------
+# health ------------------------------------------------------------------
 
-
-
-# set up design object
-ref_svy_health_loop <- as_survey(.data = df_health_clean_data, strata = strata, weights = weights)
-
-# analysis
-df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_svy_health_loop,
-                                                         input_dap = dap |>
-                                                          filter(!variable %in% c("respondent_age"))
-                                                         )|>
- mutate(level = "Individual")
-
-
-
-# roster ------------------------------------------------------------------
-
-df_dap_roster <- bind_rows(tibble::tribble(~variable,
-                                           "i.individual_age_cat",
-                                           "i.individual_genre_cat",
-                                           "i.individual_age_school_cat",
-                                           "i.individual_genre_age_cat")) |> 
+df_dap_health <- bind_rows(tibble::tribble(~variable,
+                                           "health_needed_healthcare",
+                                           "health_received_healthcare",
+                                           "healthcare_seek",
+                                           "health_unmet_need_type")) |> 
   mutate(split = "all",
-         subset_1 = "hh_woreda",
-         subset_2 = "ind_gender"
-  ) |> 
+         subset_1 = "pop_group",
+         subset_2 = "zone1",
+         subset_3 = "respondent_gender",
+         subset_4 = "i.respondent_age",
+         subset_4 = "group_zone"
+         
+         
+         )|> 
   pivot_longer(cols = starts_with("subset"), names_to = "subset_no", values_to = "subset_1") |> 
   filter(!is.na(subset_1), !subset_1 %in% c("NA")) |> 
   select(-subset_no)
+
+# set up design object
+ ref_svy_health_loop <- as_survey(.data = df_health_clean_data, strata = strata, weights = weights)
+
+# # analysis
+df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_svy_health_loop,
+                                                         input_dap = df_dap_health)|>
+
+
+ mutate(level = "Individual")
+
+# roster ------------------------------------------------------------------
+
+# df_dap_roster <- bind_rows(tibble::tribble(~variable,
+#                                            "i.individual_age_cat",
+#                                            "i.individual_genre_cat",
+#                                            "i.individual_age_school_cat",
+#                                            "i.individual_genre_age_cat")) |> 
+#   mutate(split = "all",
+#          subset_2 = "ind_gender"
+#   ) |> 
+#   pivot_longer(cols = starts_with("subset"), names_to = "subset_no", values_to = "subset_1") |> 
+#   filter(!is.na(subset_1), !subset_1 %in% c("NA")) |> 
+#   select(-subset_no)
 
 
 
@@ -120,20 +281,44 @@ df_dap_roster <- bind_rows(tibble::tribble(~variable,
 #                                           str_detect(string = i.num_gender_age, pattern = "66plusyrs") ~ "cat_66+" ))
 
 # set up design object
-ref_svy_roster <- as_survey(.data = df_roster_clean_data, strata = strata, weights = weights)
-# analysis
-df_analysis_roster <- analysis_after_survey_creation(input_svy_obj = ref_svy_roster,
-                                                     input_dap = df_dap_roster ) |> 
-  mutate(level = "Individual")
-view(df_analysis_roster)
+# ref_svy_roster <- as_survey(.data = df_roster_clean_data, strata = strata, weights = weights)
+# # analysis
+# df_analysis_roster <- analysis_after_survey_creation(input_svy_obj = ref_svy_roster,
+#                                                      input_dap = df_dap_roster ) |> 
+#   mutate(level = "Individual")
+# 
 
 # merge and format analysis ----------------------------------------------------------
 
-combined_analysis <- bind_rows(df_main_analysis, df_analysis_roster)
+combined_analysis <- bind_rows(df_main_analysis, df_analysis_health_loop)
 
 
-integer_cols_i <- c("i.fcs", "i.rcsi", "i.hhs")
-integer_cols_int <- c("int.fcs", "int.rcsi", "int.hhs")
+integer_cols_i <- c("i.fcs", 
+                    "i.rcsi", 
+                    "i.hhs",
+                    "i.chronic_illness_male",
+                    "i.chronic_illness_female",
+                    "i.pregnant_lac_women",
+                    "i.fs_meals_cat",
+                    "i.fs_meals_U5",
+                    "i.hh_zone",
+                    "i.wash_warter_secure",
+                    "i.lcsi_cat",
+                    "i.respondent_age",
+                    " i.wash_watertime")
+integer_cols_int <- c("int.fcs", 
+                      "int.rcsi",
+                      "int.hhs",
+                      "int.chronic_illness_male",
+                      "int.chronic_illness_female",
+                      "int.pregnant_lac_women",
+                      "int.fs_meals_cat",
+                      "int.fs_meals_U5",
+                      "int.hh_zone",
+                      "int.wash_warter_secure",
+                      "int.lcsi_cat",
+                      "int.respondent_age",
+                      "int.wash_watertime")
 
 # formatting the analysis, adding question labels
 full_analysis_long <- combined_analysis |> 

@@ -60,6 +60,7 @@ create_composite_indicators <- function(input_df) {
                                  i.hhs <= 3 ~ "Moderate",
                                  i.hhs == 4 ~ "Severe",
                                  i.hhs <= 6 ~ "Very severe"),
+           
            #i.hh_composition_size = int.hh_size,
            i.hoh_gender = ifelse(is.na(hoh_gender), respondent_gender, hoh_gender),
            i.hoh_age = ifelse(is.na(hoh_age), respondent_age, hoh_age),
@@ -69,6 +70,29 @@ create_composite_indicators <- function(input_df) {
                                                 chronic_illness_female > 0 ~ "yes"), 
            i.pregnant_lac_women = case_when(pregnant_lac_women == 0 ~ "no",
                                             pregnant_lac_women > 0 ~ "yes"), 
+           
+           i.fs_meals_cat = case_when(fs_meals==1~"meals_1",
+                                      fs_meals == 2~"meals_2",
+                                      fs_meals == 3~"meals_3",
+                                      fs_meals ==4~"meals_4",
+                                      fs_meals ==5~"meals_5"),
+           
+           i.fs_meals_U5 = case_when(fs_meals_U5==1~"meals_U5_1",
+                                     fs_meals_U5 == 2~"meals_U5_2",
+                                     fs_meals_U5 == 3~"meals_U5_3",
+                                     fs_meals_U5 ==4~"meals_U5_4",
+                                     fs_meals_U5 ==5~"meals_U5_5"),
+        
+           ##i.wash_watertime
+           i.wash_watertime =  case_when(
+             wash_watertime == "above_1hr_2hrs"~"above_1hr_2hrs",
+             wash_watertime == "above_2hrs_below_3hrs"~"above_2hrs_below_3hrs",
+             wash_watertime == "above_30_below_1hr"~"above_30_below_1hr",
+             wash_watertime == "above_3hrs"~"above_3hrs",
+             wash_watertime == "below_30minutes"~"below_30minutes",
+             wash_watertime == "dk"~"dk",
+             wash_watertime == "dwta"~"dwta"
+           ),
            i.fc_matrix = case_when( 
              # 1 - 5
              i.hhs == 0 & i.rcsi < 4 & i.fcs > 35 ~ 1,
@@ -197,7 +221,7 @@ create_composite_indicators <- function(input_df) {
                             no_val = "no_had_no_need",
                             exhausted_val = "no_exhausted",
                             not_applicable_val = "not_applicable") |> 
-    rename(i.lcsi_cat = lcsi_cat ) |> 
+    # rename(i.lcsi_cat = lcsi_cat ) |> 
     select(-c(starts_with("int.")))
 }
 
