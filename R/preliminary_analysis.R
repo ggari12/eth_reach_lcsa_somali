@@ -73,104 +73,107 @@ df_main_clean_data <- readxl::read_excel(path = data_path, sheet = "cleaned_main
       hh_zone=="Shabelle" & pop_group == "host"~"Shabelle_host",
       hh_zone=="Shabelle" & pop_group == "idp"~"Shabelle_idp"
     ))|> 
-  dplyr::mutate(across(.cols = starts_with("i."), .fns = ~ ifelse((is.infinite(.x)|is.nan(.x)), NA, .)))|>
-  mutate(
-         ##in.wash_water_quantity
-         int.wash_water_quantity = case_when(wash_water_quantity=="never"~ 0,
-                                             wash_water_quantity=="rarely"~1,
-                                             wash_water_quantity=="sometimes"~2,
-                                             wash_water_quantity %in% c("often","always")~3
-                                             
-         ),
-         int.wash_water_quantity2 = case_when(wash_water_quantity2=="never"~0,
-                                              wash_water_quantity2=="rarely"~1,
-                                              wash_water_quantity2=="sometimes"~2,
-                                              wash_water_quantity2 %in% c("often","always")~3
-                                              
-         ),
-         int.wash_water_quantity3 = case_when(wash_water_quantity3=="never"~0,
-                                              wash_water_quantity3=="rarely"~1,
-                                              wash_water_quantity3=="sometimes"~2,
-                                              wash_water_quantity3 %in% c("often","always")~3
-                                              
-         ),
-         int.wash_water_quantity4 = case_when(wash_water_quantity4=="never"~0,
-                                              wash_water_quantity4=="rarely"~1,
-                                              wash_water_quantity4=="sometimes"~2,
-                                              wash_water_quantity4 %in% c("often","always")~3
-                                              
-         ),
-         int.wash_water_quantity5 = case_when(wash_water_quantity5=="never"~0,
-                                              wash_water_quantity5=="rarely"~1,
-                                              wash_water_quantity5=="sometimes"~2,
-                                              wash_water_quantity5 %in% c("often", "always")~3
-                                              
-         ),
-         int.wash_water_quantity6 = case_when(wash_water_quantity6=="never"~0,
-                                              wash_water_quantity6=="rarely"~1,
-                                              wash_water_quantity6=="sometimes"~2,
-                                              wash_water_quantity6 %in% c("often", "always")~3
-                                              
-         ),
-         int.wash_water_quantity7 = case_when(wash_water_quantity7=="never"~0,
-                                              wash_water_quantity7=="rarely"~1,
-                                              wash_water_quantity7=="sometimes"~2,
-                                              wash_water_quantity7 %in% c("often", "always")~3
-                                              
-         ),
-         int.wash_water_quantity8 = case_when(wash_water_quantity8=="never"~0,
-                                              wash_water_quantity8=="rarely"~1,
-                                              wash_water_quantity8=="sometimes"~2,
-                                              wash_water_quantity8 %in% c("often","always")~3
-                                              
-         ),
-         int.wash_water_quantity9 = case_when(wash_water_quantity9=="never"~0,
-                                              wash_water_quantity9=="rarely"~1,
-                                              wash_water_quantity9=="sometimes"~2,
-                                              wash_water_quantity9 %in% c("often", "always")~3
-                                              
-         ),
-         int.wash_water_quantity10 = case_when(wash_water_quantity10=="never"~0,
-                                               wash_water_quantity10=="rarely"~1,
-                                               wash_water_quantity10=="sometimes"~2,
-                                               wash_water_quantity10 %in% c("often","always")~3
-                                               
-         ),
-         int.wash_water_quantity11 = case_when(wash_water_quantity11=="never"~0,
-                                               wash_water_quantity11=="rarely"~1,
-                                               wash_water_quantity11=="sometimes"~2,
-                                               wash_water_quantity11 %in% c("often","always")~3
-                                               
-         ),
-         int.wash_water_quantity12 = case_when(wash_water_quantity12=="never"~0,
-                                               wash_water_quantity12=="rarely"~1,
-                                               wash_water_quantity12=="sometimes"~2,
-                                               wash_water_quantity12 %in% c("often", "always")~3
-                                               
-         )                                   
-         )
-   ###  wash_water_score      
-df_main_clean_data$wash_water_score = rowSums(df_main_clean_data[ ,c("int.wash_water_quantity",
-                                           "int.wash_water_quantity2",
-                                           "int.wash_water_quantity3",
-                                           "int.wash_water_quantity4",
-                                           "int.wash_water_quantity5",
-                                           "int.wash_water_quantity6",
-                                          "int.wash_water_quantity7",
-                                           "int.wash_water_quantity8",
-                                           "int.wash_water_quantity9",
-                                           "int.wash_water_quantity10",
-                                           "int.wash_water_quantity11",
-                                           "int.wash_water_quantity12")
-                                           ], na.rm = T)
-##i.wash_water_secure         
-df_main_clean_data <- df_main_clean_data|>
-  mutate(i.wash_warter_secure = case_when(
-    wash_water_score < 11 ~ "water_secure",
-    wash_water_score>11~"water_insecure"
-  )
-  )
-    
+  dplyr::mutate(across(.cols = starts_with("i."), .fns = ~ ifelse((is.infinite(.x)|is.nan(.x)), NA, .)))
+
+view(df_main_clean_data$expenditure_rent)
+# |>
+#   mutate(
+#          ##in.wash_water_quantity
+#          int.wash_water_quantity = case_when(wash_water_quantity=="never"~ 0,
+#                                              wash_water_quantity=="rarely"~1,
+#                                              wash_water_quantity=="sometimes"~2,
+#                                              wash_water_quantity %in% c("often","always")~3
+#                                              
+#          ),
+#          int.wash_water_quantity2 = case_when(wash_water_quantity2=="never"~0,
+#                                               wash_water_quantity2=="rarely"~1,
+#                                               wash_water_quantity2=="sometimes"~2,
+#                                               wash_water_quantity2 %in% c("often","always")~3
+#                                               
+#          ),
+#          int.wash_water_quantity3 = case_when(wash_water_quantity3=="never"~0,
+#                                               wash_water_quantity3=="rarely"~1,
+#                                               wash_water_quantity3=="sometimes"~2,
+#                                               wash_water_quantity3 %in% c("often","always")~3
+#                                               
+#          ),
+#          int.wash_water_quantity4 = case_when(wash_water_quantity4=="never"~0,
+#                                               wash_water_quantity4=="rarely"~1,
+#                                               wash_water_quantity4=="sometimes"~2,
+#                                               wash_water_quantity4 %in% c("often","always")~3
+#                                               
+#          ),
+#          int.wash_water_quantity5 = case_when(wash_water_quantity5=="never"~0,
+#                                               wash_water_quantity5=="rarely"~1,
+#                                               wash_water_quantity5=="sometimes"~2,
+#                                               wash_water_quantity5 %in% c("often", "always")~3
+#                                               
+#          ),
+#          int.wash_water_quantity6 = case_when(wash_water_quantity6=="never"~0,
+#                                               wash_water_quantity6=="rarely"~1,
+#                                               wash_water_quantity6=="sometimes"~2,
+#                                               wash_water_quantity6 %in% c("often", "always")~3
+#                                               
+#          ),
+#          int.wash_water_quantity7 = case_when(wash_water_quantity7=="never"~0,
+#                                               wash_water_quantity7=="rarely"~1,
+#                                               wash_water_quantity7=="sometimes"~2,
+#                                               wash_water_quantity7 %in% c("often", "always")~3
+#                                               
+#          ),
+#          int.wash_water_quantity8 = case_when(wash_water_quantity8=="never"~0,
+#                                               wash_water_quantity8=="rarely"~1,
+#                                               wash_water_quantity8=="sometimes"~2,
+#                                               wash_water_quantity8 %in% c("often","always")~3
+#                                               
+#          ),
+#          int.wash_water_quantity9 = case_when(wash_water_quantity9=="never"~0,
+#                                               wash_water_quantity9=="rarely"~1,
+#                                               wash_water_quantity9=="sometimes"~2,
+#                                               wash_water_quantity9 %in% c("often", "always")~3
+#                                               
+#          ),
+#          int.wash_water_quantity10 = case_when(wash_water_quantity10=="never"~0,
+#                                                wash_water_quantity10=="rarely"~1,
+#                                                wash_water_quantity10=="sometimes"~2,
+#                                                wash_water_quantity10 %in% c("often","always")~3
+#                                                
+#          ),
+#          int.wash_water_quantity11 = case_when(wash_water_quantity11=="never"~0,
+#                                                wash_water_quantity11=="rarely"~1,
+#                                                wash_water_quantity11=="sometimes"~2,
+#                                                wash_water_quantity11 %in% c("often","always")~3
+#                                                
+#          ),
+#          int.wash_water_quantity12 = case_when(wash_water_quantity12=="never"~0,
+#                                                wash_water_quantity12=="rarely"~1,
+#                                                wash_water_quantity12=="sometimes"~2,
+#                                                wash_water_quantity12 %in% c("often", "always")~3
+#                                                
+#          )                                   
+#          )
+#    ###  wash_water_score      
+# df_main_clean_data$wash_water_score = rowSums(df_main_clean_data[ ,c("int.wash_water_quantity",
+#                                            "int.wash_water_quantity2",
+#                                            "int.wash_water_quantity3",
+#                                            "int.wash_water_quantity4",
+#                                            "int.wash_water_quantity5",
+#                                            "int.wash_water_quantity6",
+#                                           "int.wash_water_quantity7",
+#                                            "int.wash_water_quantity8",
+#                                            "int.wash_water_quantity9",
+#                                            "int.wash_water_quantity10",
+#                                            "int.wash_water_quantity11",
+#                                            "int.wash_water_quantity12")
+#                                            ], na.rm = T)
+# ##i.wash_water_secure         
+# df_main_clean_data <- df_main_clean_data|>
+#   mutate(i.wash_warter_secure = case_when(
+#     wash_water_score < 11 ~ "water_secure",
+#     wash_water_score>11~"water_insecure"
+#   )
+#   )
+
 # add weights to data
 df_main_clean_data_with_weights <- df_main_clean_data |>
   dplyr::group_by(hh_zone, pop_group)|>
@@ -188,15 +191,49 @@ loop_support_data <- df_main_clean_data_with_weights|>
 #Load loop
 
 health_loop <- readxl::read_excel(path = data_path, sheet = "cleaned_health_loop", na = "NA")
-
 df_health_clean_data <- loop_support_data |> 
   inner_join(health_loop, by = c("uuid" = "_submission__uuid") ) 
 
+### add some indicator form health_loop to df_main_clean_data
 
-roster_loop <- readxl::read_excel(path = data_path, sheet = "cleaned_roster_loop", na = "NA")|> 
-create_composite_indicators_roster()
-df_roster_clean_data <- loop_support_data |> 
-  inner_join(roster_loop, by = c("uuid" = "_submission__uuid") ) 
+##recoding health needed healthcare in health loop
+
+df_health_clean_data <- df_health_clean_data|>
+   mutate(
+     hh_least_needed_healthcare = case_when(
+        health_needed_healthcare =="yes" ~ 1,
+       health_needed_healthcare =="no" ~ 0
+     )
+   )
+
+numeric_cols <- c(
+  "hh_least_needed_healthcare")
+
+df_health_clean_data[, numeric_cols] <- lapply(df_health_clean_data[, numeric_cols], as.numeric)
+
+## Au moins un menbre de famille a besoi des soin
+household_level = df_health_clean_data %>%
+   group_by(uuid) %>%
+   summarise(across(numeric_cols, 
+                    list(max = ~max(., na.rm = TRUE))))
+ 
+household_level <- household_level %>% mutate_all(~ifelse(. == "-Inf", NA, .)) ## change -Inf to NA
+household_level <- household_level %>% rename_with(~str_remove(., '_max')) ## remove "_max"
+ 
+
+ ### join results to  df_main_clean_data
+df_main_clean_data_with_weights <-  df_main_clean_data_with_weights %>% 
+   left_join(household_level)|>
+   mutate(i.hh_least_needed_healthcare = case_when( 
+     hh_least_needed_healthcare == 1 ~ "least_person_need_healthcare",
+     hh_least_needed_healthcare == 0 ~ "no_dtw_dt")
+     
+   )
+
+# roster_loop <- readxl::read_excel(path = data_path, sheet = "cleaned_roster_loop", na = "NA")|> 
+# create_composite_indicators_roster()
+# df_roster_clean_data <- loop_support_data |> 
+#   inner_join(roster_loop, by = c("uuid" = "_submission__uuid") ) 
 
 # tool
 loc_tool <- "inputs/REACH_ETH_LCSA_Somali_tool.xlsx"
@@ -243,7 +280,7 @@ df_dap_health <- bind_rows(tibble::tribble(~variable,
   select(-subset_no)
 
 # set up design object
- ref_svy_health_loop <- as_survey(.data = df_health_clean_data, strata = strata, weights = weights)
+   ref_svy_health_loop <- as_survey(.data = df_health_clean_data, strata = strata, weights = weights)
 
 # # analysis
 df_analysis_health_loop <- analysis_after_survey_creation(input_svy_obj = ref_svy_health_loop,
@@ -305,7 +342,13 @@ integer_cols_i <- c("i.fcs",
                     "i.wash_warter_secure",
                     "i.lcsi_cat",
                     "i.respondent_age",
-                    " i.wash_watertime")
+                    "i.wash_watertime",
+                    "i.expenditure_food30_days_total",
+                    "i.expenditure_service6_month_total",
+                    "i.last30days_income_sources_total",
+                    "i.past3years_hh_income_sources_total",
+                    "i.hh_least_needed_healthcare"
+                    )
 integer_cols_int <- c("int.fcs", 
                       "int.rcsi",
                       "int.hhs",
@@ -318,7 +361,12 @@ integer_cols_int <- c("int.fcs",
                       "int.wash_warter_secure",
                       "int.lcsi_cat",
                       "int.respondent_age",
-                      "int.wash_watertime")
+                      "int.wash_watertime",
+                      "int.expenditure_food30_days_total",
+                      "int.expenditure_service6_month_total",
+                      "int.last30days_income_sources_total",
+                      "int.past3years_hh_income_sources_total",
+                      "int.hh_least_needed_healthcare")
 
 # formatting the analysis, adding question labels
 full_analysis_long <- combined_analysis |> 
@@ -345,7 +393,7 @@ full_analysis_long <- combined_analysis |>
          level)
 
 # output analysis
-
+view(full_analysis_long)  
 write_csv(full_analysis_long, paste0("outputs/", butteR::date_file_prefix(), "_full_analysis_lf_eth_lcsa_somali.csv"), na="")
 write_csv(full_analysis_long, paste0("outputs/full_analysis_lf_eth_lcsa_somali.csv"), na="")
 write_csv(df_main_analysis, paste0("outputs/", butteR::date_file_prefix(), "combined_analysis_lf_eth_somali.csv"), na="")
