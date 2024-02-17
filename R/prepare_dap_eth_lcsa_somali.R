@@ -15,7 +15,7 @@ vars_to_remove <- c("consent",
 
 df_dap_file_data_composites <- df_tool_survey |> 
   filter(str_detect(string = type, pattern = "integer|date|select_one|select_multiple"),
-         !str_detect(string = name, pattern = "^fs_hhs|^fs_fcs|^rCSI|^liv"),
+         !str_detect(string = name, pattern = "^fs_hhs|^fs_fcs|^liv"),
          !name %in% vars_to_remove) |> 
   select(variable = name) |>
   bind_rows(tibble::tribble(~variable,
@@ -35,7 +35,12 @@ df_dap_file_data_composites <- df_tool_survey |>
                             "i.wash_watertime",
                             "i.lcsi_cat",
                             "i.respondent_age",
-                            "i.fewsnet_phase")) |> 
+                            "i.fewsnet_phase",
+                            "i.expenditure_food30_days_total",
+                            "i.expenditure_service6_month_total",
+                            "i.last30days_income_sources_total",
+                            "i.past3years_hh_income_sources_total",
+                            "i.hh_least_needed_healthcare")) |> 
   mutate(split = "all",
          subset_1 = "zone1",
          subset_2 = "group_zone",
