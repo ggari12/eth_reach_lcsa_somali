@@ -93,7 +93,7 @@ create_composite_indicators <- function(input_df) {
                                                       expenditure_communications,
                                                       expenditure_other_frequent
              
-           ))),
+           )), na.rm = TRUE),
 
             ## expenditure service 6 months
            i.expenditure_service6_month_total = rowSums(across(c(
@@ -103,7 +103,7 @@ create_composite_indicators <- function(input_df) {
              expenditure_education,
              expenditure_debt,
              expenditure_other_infrequent
-           ))),
+           )), na.rm = TRUE),
 
         ## income last 30 days
         i.last30days_income_sources_total = rowSums(across(c(last30_income_agriculture_livestock,
