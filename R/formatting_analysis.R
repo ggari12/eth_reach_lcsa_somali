@@ -47,6 +47,8 @@ df_tool_groups <- df_survey |>
 
 # support composite grps and labels
 df_support_composite_grps <- readxl::read_excel("support_files/support composite grps and labels.xlsx")
+
+
 df_support_integer_col_labs <- readxl::read_excel("support_files/support integer column names.xlsx") |>
     filter(!is.na(integer_column_label))
 
@@ -86,11 +88,11 @@ df_dap_questions <-aa |>
     mutate(sector = str_replace_all(string = sector, pattern = "\\/|\\?", replacement = "_"),
            sector = case_when(sector %in% c("Presentation and consent", "Respondent information","HH information") ~ "Household data",
                                               sector %in% c("Cash & Markets",
-                                                            "Cash & Markets, Livelihoods",
-                                                            "Food Security, Livelihoods") ~ "Cash and Markets",
+                                                            "Cash & Markets, Livelihoods") ~ "Cash and Markets",
                               sector %in% c("livelihood",
                                             "Livelihood",
-                                            "Livelihoods")~"Livelihoods",
+                                            "Livelihoods",
+                                            "Food Security, Livelihoods")~"Livelihoods",
                                               sector %in% c("Shock or vulnerability", "Food security") ~ "Food Security",
                                               
                                               TRUE ~ sector)
@@ -118,11 +120,11 @@ df_analysis_dap_info <- df_analysis |>
            choices = ifelse(variable %in% df_support_integer_col_labs$variable, recode(variable, !!!setNames(df_support_integer_col_labs$integer_column_label, df_support_integer_col_labs$variable)), choices),
            sector = case_when(sector %in% c("Presentation and consent", "Respondent information","HH information") ~ "Household data",
                                                  sector %in% c("Cash & Markets",
-                                                               "Cash & Markets, Livelihoods",
-                                                               "Food Security, Livelihoods") ~ "Cash and Markets",
+                                                               "Cash & Markets, Livelihoods") ~ "Cash and Markets",
                                                  sector %in% c("livelihood",
                                                                "Livelihood",
-                                                               "Livelihoods")~"Livelihoods",
+                                                               "Livelihoods",
+                                                               "Food Security, Livelihoods")~"Livelihoods",
                                                  sector %in% c("Shock or vulnerability", "Food security") ~ "Food Security",
                                              
                                               TRUE ~ sector)
@@ -139,8 +141,8 @@ hs1 <- createStyle(fgFill = "#EE5859", halign = "CENTER", textDecoration = "Bold
 hs2 <- createStyle(fgFill = "#808080", halign = "CENTER", textDecoration = "Bold", fontColour = "white", wrapText = T)
 hs3 <- createStyle(fgFill = "#EE5859", halign = "CENTER", textDecoration = "Bold", border = "Bottom", fontColour = "white")
 # numbers
-number_2digit_style <- openxlsx::createStyle(numFmt = "0.0")
-number_1digit_style <- openxlsx::createStyle(numFmt = "0.0")
+number_2digit_style <- openxlsx::createStyle(numFmt = "0.00")
+number_1digit_style <- openxlsx::createStyle(numFmt = "0.00")
 number_style <- openxlsx::createStyle(numFmt = "0")
 
 cols_for_special_formatting <- c("Zone", "Godius")
@@ -149,9 +151,9 @@ for (i in 1:length(output)) {
     addWorksheet(wb, sheetName=names(output[i]))
     
     # add header to sheet
-    mergeCells(wb, sheet = names(output[i]), rows = 1, cols = 1:10)
+    mergeCells(wb, sheet = names(output[i]), rows = 1, cols = 1:8)
     writeData(wb, sheet = names(output[i]), names(output[i]), startCol = 1, startRow = 1, headerStyle = hs1)
-    addStyle(wb, sheet = names(output[i]), hs1, rows = 1, cols = 1:10, gridExpand = TRUE)
+    addStyle(wb, sheet = names(output[i]), hs1, rows = 1, cols = 1:8, gridExpand = TRUE)
     
     setColWidths(wb = wb, sheet = names(output[i]), cols = 2, widths = 90)
     
@@ -265,7 +267,7 @@ for (i in 1:length(output)) {
         
         current_data_length <- max(current_variable_data$row_id) - min(current_variable_data$row_id)
         
-        addStyle(wb, sheet = names(output[i]), number_1digit_style, rows = current_row_start + 1 : current_row_start + 1 + current_data_length, cols = 1:10, gridExpand = TRUE)
+        addStyle(wb, sheet = names(output[i]), number_1digit_style, rows = current_row_start + 1 : current_row_start + 1 + current_data_length, cols = 1:8, gridExpand = TRUE)
 
         writeDataTable(wb = wb, 
                        sheet = names(output[i]), 

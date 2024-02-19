@@ -82,17 +82,162 @@ create_composite_indicators <- function(input_df) {
                                      fs_meals_U5 == 3~"meals_U5_3",
                                      fs_meals_U5 ==4~"meals_U5_4",
                                      fs_meals_U5 ==5~"meals_U5_5"),
+           ##expenditure food 30 days
+           i.expenditure_food30_days_total = rowSums(across(c(expenditure_food,
+                                                      expenditure_rent,
+                                                      expenditure_water,
+                                                      expenditure_nfi_frequent,
+                                                      expenditure_utilities,
+                                                      expenditure_fuel,
+                                                      expenditure_transportation,
+                                                      expenditure_communications,
+                                                      expenditure_other_frequent
+             
+           ))),
+
+            ## expenditure service 6 months
+           i.expenditure_service6_month_total = rowSums(across(c(
+             expenditure_shelter,
+             expenditure_nfi_infrequent,
+             expenditure_health,
+             expenditure_education,
+             expenditure_debt,
+             expenditure_other_infrequent
+           ))),
+
+        ## income last 30 days
+        i.last30days_income_sources_total = rowSums(across(c(last30_income_agriculture_livestock,
+                                                    last30_income_agriculture_farming,
+                                                    last30_income_fishing,
+                                                    last30_income_salaried_work,
+                                                    last30_income_casual_income,
+                                                    last30_income_own_business_income,
+                                                    last30_income_govt_social_benefits,
+                                                    last30_income_remittances,
+                                                    last30_income_rent_income,
+                                                    last30_income_loans_or_family_support,
+                                                    last30_income_hum_assistance,
+                                                    last30_hh_other_income_amount
+
+        )), na.rm = TRUE),
+      
+        ### income the past 3 years-2020
+        i.past3years_hh_income_sources_total = rowSums(across(c( hh_income_agriculture_livestock,
+                                                               hh_income_agriculture_farming,
+                                                               hh_income_fishing,
+                                                               hh_income_salaried_work,
+                                                               hh_income_casual_income,
+                                                               hh_income_own_business_income,
+                                                               hh_income_govt_social_benefits,
+                                                               hh_income_remittances,
+                                                               hh_income_rent_income,
+                                                               hh_income_loans_or_family_support,
+                                                               hh_income_hum_assistance
+
+        )), na.rm = TRUE),
         
-           ##i.wash_watertime
-           i.wash_watertime =  case_when(
-             wash_watertime == "above_1hr_2hrs"~"above_1hr_2hrs",
-             wash_watertime == "above_2hrs_below_3hrs"~"above_2hrs_below_3hrs",
-             wash_watertime == "above_30_below_1hr"~"above_30_below_1hr",
-             wash_watertime == "above_3hrs"~"above_3hrs",
-             wash_watertime == "below_30minutes"~"below_30minutes",
-             wash_watertime == "dk"~"dk",
-             wash_watertime == "dwta"~"dwta"
-           ),
+        
+           # ##i.wash_watertime
+           # i.wash_watertime =  case_when(
+           #   wash_watertime == "above_1hr_2hrs"~"above_1hr_2hrs",
+           #   wash_watertime == "above_2hrs_below_3hrs"~"above_2hrs_below_3hrs",
+           #   wash_watertime == "above_30_below_1hr"~"above_30_below_1hr",
+           #   wash_watertime == "above_3hrs"~"above_3hrs",
+           #   wash_watertime == "below_30minutes"~"below_30minutes",
+           #   wash_watertime == "dk"~"dk",
+           #   wash_watertime == "dwta"~"dwta"
+           # ),
+        int.wash_water_quantity = case_when(wash_water_quantity=="never"~ 0,
+                                            wash_water_quantity=="rarely"~1,
+                                            wash_water_quantity=="sometimes"~2,
+                                            wash_water_quantity %in% c("often","always")~3
+                                            
+        ),
+        int.wash_water_quantity2 = case_when(wash_water_quantity2=="never"~0,
+                                             wash_water_quantity2=="rarely"~1,
+                                             wash_water_quantity2=="sometimes"~2,
+                                             wash_water_quantity2 %in% c("often","always")~3
+                                             
+        ),
+        int.wash_water_quantity3 = case_when(wash_water_quantity3=="never"~0,
+                                             wash_water_quantity3=="rarely"~1,
+                                             wash_water_quantity3=="sometimes"~2,
+                                             wash_water_quantity3 %in% c("often","always")~3
+                                             
+        ),
+        int.wash_water_quantity4 = case_when(wash_water_quantity4=="never"~0,
+                                             wash_water_quantity4=="rarely"~1,
+                                             wash_water_quantity4=="sometimes"~2,
+                                             wash_water_quantity4 %in% c("often","always")~3
+                                             
+        ),
+        int.wash_water_quantity5 = case_when(wash_water_quantity5=="never"~0,
+                                             wash_water_quantity5=="rarely"~1,
+                                             wash_water_quantity5=="sometimes"~2,
+                                             wash_water_quantity5 %in% c("often", "always")~3
+                                             
+        ),
+        int.wash_water_quantity6 = case_when(wash_water_quantity6=="never"~0,
+                                             wash_water_quantity6=="rarely"~1,
+                                             wash_water_quantity6=="sometimes"~2,
+                                             wash_water_quantity6 %in% c("often", "always")~3
+                                             
+        ),
+        int.wash_water_quantity7 = case_when(wash_water_quantity7=="never"~0,
+                                             wash_water_quantity7=="rarely"~1,
+                                             wash_water_quantity7=="sometimes"~2,
+                                             wash_water_quantity7 %in% c("often", "always")~3
+                                             
+        ),
+        int.wash_water_quantity8 = case_when(wash_water_quantity8=="never"~0,
+                                             wash_water_quantity8=="rarely"~1,
+                                             wash_water_quantity8=="sometimes"~2,
+                                             wash_water_quantity8 %in% c("often","always")~3
+                                             
+        ),
+        int.wash_water_quantity9 = case_when(wash_water_quantity9=="never"~0,
+                                             wash_water_quantity9=="rarely"~1,
+                                             wash_water_quantity9=="sometimes"~2,
+                                             wash_water_quantity9 %in% c("often", "always")~3
+                                             
+        ),
+        int.wash_water_quantity10 = case_when(wash_water_quantity10=="never"~0,
+                                              wash_water_quantity10=="rarely"~1,
+                                              wash_water_quantity10=="sometimes"~2,
+                                              wash_water_quantity10 %in% c("often","always")~3
+                                              
+        ),
+        int.wash_water_quantity11 = case_when(wash_water_quantity11=="never"~0,
+                                              wash_water_quantity11=="rarely"~1,
+                                              wash_water_quantity11=="sometimes"~2,
+                                              wash_water_quantity11 %in% c("often","always")~3
+                                              
+        ),
+        int.wash_water_quantity12 = case_when(wash_water_quantity12=="never"~0,
+                                              wash_water_quantity12=="rarely"~1,
+                                              wash_water_quantity12=="sometimes"~2,
+                                              wash_water_quantity12 %in% c("often", "always")~3
+                                              
+    ),
+  ###  wash_water_score      
+  wash_water_score = rowSums(across(c( int.wash_water_quantity,
+                                           int.wash_water_quantity2,
+                                           int.wash_water_quantity3,
+                                           int.wash_water_quantity4,
+                                           int.wash_water_quantity5,
+                                           int.wash_water_quantity6,
+                                          int.wash_water_quantity7,
+                                           int.wash_water_quantity8,
+                                           int.wash_water_quantity9,
+                                           int.wash_water_quantity10,
+                                           int.wash_water_quantity11,
+                                           int.wash_water_quantity12)), na.rm = T),
+  ##i.wash_water_secure         
+  i.wash_warter_secure = case_when(
+      wash_water_score < 12 ~ "water_secure",
+      wash_water_score>11~"water_insecure"
+    ),
+        
            i.fc_matrix = case_when( 
              # 1 - 5
              i.hhs == 0 & i.rcsi < 4 & i.fcs > 35 ~ 1,
@@ -225,28 +370,28 @@ create_composite_indicators <- function(input_df) {
     select(-c(starts_with("int.")))
 }
 
-create_composite_indicators_roster <- function(input_df) {
-  input_df |> 
-    dplyr::mutate(i.individual_age_cat = case_when(
-      ind_age<18~"children_17-",
-      ind_age>=18~"adults_18+"
-    ),
-    i.individual_genre_cat=case_when(
-      ind_age<13 & ind_gender =="female"~"women aged 12 and under",
-      ind_age>=13 & ind_gender =="female"~"woman aged 13 over"
-    ),
-   i.individual_age_school_cat = case_when(
-     ind_age<6~"NA",
-      ind_age>=6 &ind_age<18 ~ "school age children 6-17",
-      ind_age>18 ~ "other age"
-    ),
-   i.individual_genre_age_cat = case_when(
-      ind_age>=6 & ind_age<18 & ind_gender =="female"~"girl school 6-17",
-      ind_age>=6 & ind_age <18 & ind_gender == "male"~"boy school 6-17",
-      
-    )
-    )
-}
+# create_composite_indicators_roster <- function(input_df) {
+#   input_df |> 
+#     dplyr::mutate(i.individual_age_cat = case_when(
+#       ind_age<18~"children_17-",
+#       ind_age>=18~"adults_18+"
+#     ),
+#     i.individual_genre_cat=case_when(
+#       ind_age<13 & ind_gender =="female"~"women aged 12 and under",
+#       ind_age>=13 & ind_gender =="female"~"woman aged 13 over"
+#     ),
+#    i.individual_age_school_cat = case_when(
+#      ind_age<6~"NA",
+#       ind_age>=6 &ind_age<18 ~ "school age children 6-17",
+#       ind_age>18 ~ "other age"
+#     ),
+#    i.individual_genre_age_cat = case_when(
+#       ind_age>=6 & ind_age<18 & ind_gender =="female"~"girl school 6-17",
+#       ind_age>=6 & ind_age <18 & ind_gender == "male"~"boy school 6-17",
+#       
+#     )
+#     )
+# }
 
 
 ###############################################################################
