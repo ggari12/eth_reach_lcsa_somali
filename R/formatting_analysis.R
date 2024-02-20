@@ -145,8 +145,6 @@ number_2digit_style <- openxlsx::createStyle(numFmt = "0.00")
 number_1digit_style <- openxlsx::createStyle(numFmt = "0.00")
 number_style <- openxlsx::createStyle(numFmt = "0")
 
-cols_for_special_formatting <- c("Zone", "Godius")
-
 for (i in 1:length(output)) {
     addWorksheet(wb, sheetName=names(output[i]))
     
