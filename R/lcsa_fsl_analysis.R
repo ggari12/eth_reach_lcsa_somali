@@ -125,7 +125,7 @@ write_csv(cl_food_related,
                                sample_design = "two_stage_cluster",
                                cluster = "cluster",
                                
-                               proportions = c("fcs_cat", "hhs_cat", "hdds_cat", "rcsi_cat", "lcs_cat",
+                               proportions = c("fcs_cat", "hhs_cat","hdds_cat",  "rcsi_cat", "lcs_cat",
                                                "fc_phase", "fclc_phase"),
                                
                                means = c("fcs_score", "hhs_score", "rcsi_score", "food_exp_share")))
