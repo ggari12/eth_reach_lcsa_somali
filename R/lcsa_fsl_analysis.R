@@ -18,7 +18,7 @@ library(healthyr)
 
 # Step 1: Load your Dataset ####
 
-df <- readxl::read_excel(path = "inputs/clean_data_eth_lcsa_somali.xlsx", na = "NA") |> 
+df <- readxl::read_excel(path = "inputs/20240202_clean_data_eth_lcsa_somali.xlsx", na = "NA") |> 
   mutate(across(.cols = liv_stress_1:liv_emergency_3, 
                 .fns = ~case_when(.x %in% c("yes") ~ "1",
                                   .x %in% c("no_had_no_need") ~ "2",
@@ -44,7 +44,7 @@ df2 <- format_nut_health_indicators(df = df,
                                     # Income variables as in MSNA Indicator Bank
                                     livelihood_variables = c("income_salaried" = "hh_income_salaried_work", "income_casual" = "hh_income_casual_income", "income_trade" = "hh_income_own_business_income", "income_own_production" = "hh_income_agriculture_farming", "income_social_benefits" = "hh_income_govt_social_benefits",
                                                              "income_rent" = "hh_income_rent_income", "income_remittances" = "hh_income_remittances", "income_loans_family" = "hh_income_loans_or_family_support", #"income_loans_community",
-                                                             "income_humanitarian_assistance" = "hh_income_hum_assistance", "income_other" = "hh_other_income_amount"),
+                                                             "income_humanitarian_assistance" = "hh_income_hum_assistance"),
                                     
                                     # Expenditure Indicators as in MSNA Indicator Bank
                                     food_exp_col = "expenditure_food",
@@ -52,6 +52,9 @@ df2 <- format_nut_health_indicators(df = df,
                                     monthly_expenditures = c("exp_food" = "expenditure_food", "exp_rent" = "expenditure_rent", "exp_nfi_monthly" = "expenditure_nfi_frequent", "exp_utilities" = "expenditure_utilities", "exp_fuel" = "expenditure_fuel", "exp_transport" = "expenditure_transportation", "exp_comms" = "expenditure_communications", "exp_other_monthly" = "expenditure_other_frequent"),
                                     period_expenditures = c("exp_shelter" = "expenditure_shelter", "exp_nfi_infrequent" = "expenditure_nfi_infrequent", "exp_health" = "expenditure_health", "exp_education" = "expenditure_education", "exp_debt" = "expenditure_debt", "exp_other_infrequent" = "expenditure_other_infrequent"),
                                     num_period_months = 6)
+
+
+
 
 # Step 3: Review a Quality Summary Report ####
 
@@ -65,7 +68,7 @@ df2 <- format_nut_health_indicators(df = df,
 
 # export reports
 healthyr::create_fsl_quality_report(df = df2, 
-                                    short_report = FALSE, 
+                                    short_report = FALSE,
                                     file_path = paste0("outputs/", butteR::date_file_prefix(), 
                                                        "_eth_lcsa_somali_healthyr_full_report.xlsx"))
 
