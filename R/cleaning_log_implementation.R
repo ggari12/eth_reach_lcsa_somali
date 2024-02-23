@@ -20,14 +20,15 @@ options("openxlsx.dateFormat" = "dd/mm/yyyy")
 
 data_path <- "outputs/combined_checks_eth_lcsa_somali_GG2_Carlos.xlsx"
 df_cleaning_log <- readxl::read_excel(data_path, col_types = "text", na = "NA")|> 
-  filter(!adjust_log %in% c("delete_log"), reviewed %in% c("1")) |>
+  filter(!adjust_log %in% c("delete_log"), reviewed %in% c("1"))|>
   mutate(adjust_log = ifelse(is.na(adjust_log), "apply_suggested_change", adjust_log),
          value = ifelse(is.na(value) & str_detect(string = issue_id, pattern = "logic_c_"), "blank", value),
          value = ifelse(type %in% c("remove_survey"), "blank", value),
          name = ifelse(is.na(name) & type %in% c("remove_survey"), "point_number", name)
   ) |> 
   filter(!is.na(value), !is.na(uuid)) |>
-  mutate(value = ifelse(value %in% c("blank"), NA, value),
+  mutate(value = ifelse(value %in% c("blank"), NA,
+                        ifelse(value %in% c("na"), NA, value)),
           # sheet = NA,
           # index = NA,
          relevant = NA) |>
@@ -84,8 +85,8 @@ vars_to_remove_from_data = c("deviceid", "audit", "audit_URL", "instance_name", 
 df_cleaning_log_main <-  df_cleaning_log |> 
   filter(is.na(sheet))
 
-df_cleaning_step <- supporteR::cleaning_support(input_df_raw_data = df_raw_data |> select(-starts_with("healthcare_seek"
-                                                                                                       )),
+df_cleaning_step <- supporteR::cleaning_support(input_df_raw_data = df_raw_data|> 
+                                                  select(-starts_with("healthcare_seek")),
                                                 input_df_survey = df_survey,
                                                 input_df_choices = df_choices,
                                                 input_df_cleaning_log = df_cleaning_log_main, 
@@ -111,7 +112,8 @@ df_cleaned_data_log_roster <- df_raw_data_loop_roster |>
 df_cleaning_log_health <- df_cleaning_log |> 
   filter(uuid %in% df_raw_data_loop_health$`_uuid`)
 remove_index <- df_cleaning_log_health |> filter(!is.na(index))
-df_cleaned_data_log_health <- supporteR::cleaning_support(input_df_raw_data = df_raw_data_loop_health |> select(-starts_with("healthcare_seek")),
+df_cleaned_data_log_health <- supporteR::cleaning_support(input_df_raw_data = df_raw_data_loop_health|> 
+                                                            select(-starts_with("healthcare_seek")),
                                                           input_df_survey = df_survey,
                                                           input_df_choices = df_choices,
                                                           input_df_cleaning_log = df_cleaning_log_health, 
