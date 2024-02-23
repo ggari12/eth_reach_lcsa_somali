@@ -30,7 +30,7 @@ create_composite_indicators <- function(input_df) {
                                                       fs_hhs_daynoteating %in% c("yes") & fs_hhs_daynoteating_freq %in% c("often") ~ 2) 
     ) |> 
     rowwise() |> 
-    dplyr::mutate(int.fcs = sum(c_across(int.fcs_cereals_tubers:int.fcs_oils)),
+    dplyr::mutate(int.fcs = sum(c_across(int.fcs_cereals_tubers:int.fcs_oils), na.rm = T),
            int.rcsi = sum(c_across(int.rCSILessQlty:int.rCSIMealNb)),
            int.hhs = sum(c_across(int.freq_no_food_lack_resources:int.freq_day_and_night_no_food)),
            i.hh_size = case_when(hh_size <= 3 ~ "between_1_and_3_members",
@@ -366,7 +366,7 @@ create_composite_indicators <- function(input_df) {
                             no_val = "no_had_no_need",
                             exhausted_val = "no_exhausted",
                             not_applicable_val = "not_applicable") |> 
-    # rename(i.lcsi_cat = lcsi_cat ) |> 
+     rename(i.lcsi_cat = lcsi_cat ) |> 
     select(-c(starts_with("int.")))
 }
 
