@@ -11,7 +11,7 @@ getwd()
 # devtools::install_github("twesigye10/supporteR")
 
 # clean data
-data_path <- "outputs/20240202_clean_data_eth_lcsa_somali.xlsx"
+data_path <- "outputs/20240222_clean_data_eth_lcsa_somali.xlsx"
 weight_table <- readxl::read_excel("inputs/data_eth_lcsa_somali_weighted.xlsx")|>
   dplyr::group_by(hh_zone, pop_group)|>
   mutate(hh_zone = case_when(hh_zone =="ET0508"~"Afder",
@@ -73,12 +73,13 @@ df_main_clean_data <- readxl::read_excel(path = data_path, sheet = "cleaned_main
       hh_zone=="Shabelle" & pop_group == "host"~"Shabelle_host",
       hh_zone=="Shabelle" & pop_group == "idp"~"Shabelle_idp"
     ))|> 
-  dplyr::mutate(across(.cols = starts_with("i."), .fns = ~ ifelse((is.infinite(.x)|is.nan(.x)), NA, .)))
-
-df_main_clean_data["i.past3years_hh_income_sources_total"][df_main_clean_data["i.past3years_hh_income_sources_total"] == 0] <- NA
-df_main_clean_data["i.last30days_income_sources_total"][df_main_clean_data["i.last30days_income_sources_total"] == 0] <- NA
-df_main_clean_data["i.expenditure_food30_days_total"][df_main_clean_data["i.expenditure_food30_days_total"] == 0] <- NA
-df_main_clean_data["i.expenditure_service6_month_total"][df_main_clean_data["i.expenditure_service6_month_total"] == 0] <- NA
+  dplyr::mutate(across(.cols = starts_with("i."), .fns = ~ ifelse((is.infinite(.x)|is.nan(.x)), NA, .)))|>
+  mutate(i.past3years_hh_income_sources_total = ifelse(i.past3years_hh_income_sources_total==0, NA, i.past3years_hh_income_sources_total),
+         i.last30days_income_sources_total = ifelse(i.last30days_income_sources_total==0, NA, i.last30days_income_sources_total),
+         i.expenditure_food30_days_total = ifelse(i.expenditure_food30_days_total==0, NA, i.expenditure_food30_days_total),
+         i.expenditure_service6_month_total = ifelse(i.expenditure_service6_month_total==0, NA, i.expenditure_service6_month_total),
+         i.fcs = ifelse(i.fcs==0, NA, i.fcs),
+         i.fcs_cat= ifelse(i.fcs==0&i.fcs_cat=="Poor", NA, i.fcs_cat))
 
 
 # add weights to data
