@@ -2,7 +2,7 @@
 rm(list = ls())
 library(tidyverse)
 library(srvyr)
-library(supporteR)  
+library(supporteR) 
 
 source("R/composite_indicators.R")
 getwd()
@@ -11,7 +11,7 @@ getwd()
 # devtools::install_github("twesigye10/supporteR")
 
 # clean data
-data_path <- "outputs/20240222_clean_data_eth_lcsa_somali.xlsx"
+data_path <- "outputs/20240228_clean_data_eth_lcsa_somali.xlsx"
 weight_table <- readxl::read_excel("inputs/data_eth_lcsa_somali_weighted.xlsx")|>
   dplyr::group_by(hh_zone, pop_group)|>
   mutate(hh_zone = case_when(hh_zone =="ET0508"~"Afder",
@@ -29,7 +29,7 @@ weight_table <- readxl::read_excel("inputs/data_eth_lcsa_somali_weighted.xlsx")|
 data_nms <- names(readxl::read_excel(path = data_path, n_max = 3000, sheet = "cleaned_main_data"))
 c_types <- ifelse(str_detect(string = data_nms, pattern = "_other$"), "text", "guess")
 
-df_main_clean_data <- readxl::read_excel(path = data_path, sheet = "cleaned_main_data", col_types = c_types, na = "NA") |> 
+df_main_clean_data <- readxl::read_excel(path = data_path, sheet = "cleaned_main_data", col_types = c_types, na = "NA")|> 
   # dplyr::select(-starts_with("i.")) |> 
   create_composite_indicators() |> 
   dplyr::mutate(strata = hh_woreda,
@@ -79,8 +79,8 @@ df_main_clean_data <- readxl::read_excel(path = data_path, sheet = "cleaned_main
          i.expenditure_food30_days_total = ifelse(i.expenditure_food30_days_total==0, NA, i.expenditure_food30_days_total),
          i.expenditure_service6_month_total = ifelse(i.expenditure_service6_month_total==0, NA, i.expenditure_service6_month_total),
          i.fcs = ifelse(i.fcs==0, NA, i.fcs),
-         i.fcs_cat= ifelse(i.fcs==0&i.fcs_cat=="Poor", NA, i.fcs_cat))
-
+         i.fcs_cat= ifelse(i.fcs==0&i.fcs_cat=="Poor", NA, i.fcs_cat))|> 
+  select(-starts_with("last3months_healthcare_barriers"), -starts_with("hh_shocks_affect2"), -starts_with("hh_shocks_affect12"))
 
 # add weights to data
 df_main_clean_data_with_weights <- df_main_clean_data |>
