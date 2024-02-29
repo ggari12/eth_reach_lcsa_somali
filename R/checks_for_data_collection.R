@@ -1379,7 +1379,7 @@ df_logic_c_lcsi_no_stress_but_crisis_emergency_c6 <- df_tool_data |>
          i.check.checked_by = "",
          i.check.checked_date = as_date(today()),
          i.check.comment = "", 
-         i.check.reviewed = "",
+         i.check.reviewed = "1",
          i.check.adjust_log = "",
          i.check.so_sm_choices = "") |> 
   slice(rep(1:n(), each = 6)) |>  
@@ -1406,19 +1406,19 @@ add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_l
 
 # lcsi_stress_c7
 df_logic_c_lcsi_no_livestock_but_stress4_c7 <- df_tool_data |>  
-  filter(hh_own_livestock %in% c("no"), 
+  filter(hh_own_livestock2 %in% c("no"), 
          liv_stress_4 %in% c("yes"))  |> 
   mutate(i.check.type = "change_response",
          i.check.name = "liv_stress_4",
          i.check.current_value = as.character(liv_stress_4),
-         i.check.value = "no_exhausted",
+         i.check.value = "not_applicable",
          i.check.issue_id = "logic_c_lcsi_no_livestock_but_stress4_c7",
-         i.check.issue = glue("livestock but stress4"),
+         i.check.issue = glue("no livestock but stress4"),
          i.check.other_text = "",
          i.check.checked_by = "",
          i.check.checked_date = as_date(today()),
          i.check.comment = "", 
-         i.check.reviewed = "",
+         i.check.reviewed = "1",
          i.check.adjust_log = "",
          i.check.so_sm_choices = "") |> 
   filter(!is.na(i.check.current_value)) |> 
@@ -1429,19 +1429,19 @@ add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_l
 
 # lcsi_stress_c8
 df_logic_c_lcsi_no_livestock_but_emergency2_c8 <- df_tool_data |>  
-  filter(hh_own_livestock %in% c("no"), 
+  filter(hh_own_livestock2 %in% c("no"), 
          liv_emergency_2 %in% c("yes"))  |> 
   mutate(i.check.type = "change_response",
-         i.check.name = "liv_emergency_2",
+         i.check.name = "not_applicable",
          i.check.current_value = as.character(liv_emergency_2),
          i.check.value = "no_exhausted",
          i.check.issue_id = "logic_c_lcsi_no_livestock_but_emergency2_c8",
-         i.check.issue = glue("livestock but emergency2"),
+         i.check.issue = glue("no livestock but emergency2"),
          i.check.other_text = "",
          i.check.checked_by = "",
          i.check.checked_date = as_date(today()),
          i.check.comment = "", 
-         i.check.reviewed = "",
+         i.check.reviewed = "1",
          i.check.adjust_log = "",
          i.check.so_sm_choices = "") |> 
   filter(!is.na(i.check.current_value)) |> 
@@ -1449,6 +1449,30 @@ df_logic_c_lcsi_no_livestock_but_emergency2_c8 <- df_tool_data |>
   mutate(hh_kebele = as.character(hh_kebele))
 
 add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_no_livestock_but_emergency2_c8")
+
+# lcsi_crisis_c9
+df_logic_c_lcsi_no_plant_crops_but_crisis1_c9 <- df_tool_data |>  
+  filter(hh_plant_crops %in% c("did_not_plant"), 
+         liv_crisis_1 %in% c("yes"))  |> 
+  mutate(i.check.type = "change_response",
+         i.check.name = "liv_crisis_1",
+         i.check.current_value = as.character(liv_crisis_1),
+         i.check.value = "not_applicable",
+         i.check.issue_id = "logic_c_lcsi_no_plants_crops_but_emergency2_c9",
+         i.check.issue = glue("no plant crops but crisis1"),
+         i.check.other_text = "",
+         i.check.checked_by = "",
+         i.check.checked_date = as_date(today()),
+         i.check.comment = "", 
+         i.check.reviewed = "1",
+         i.check.adjust_log = "",
+         i.check.so_sm_choices = "") |> 
+  filter(!is.na(i.check.current_value)) |> 
+  supporteR::batch_select_rename(input_selection_str = "i.check.", input_replacement_str = "") |> 
+  mutate(hh_kebele = as.character(hh_kebele))
+
+add_checks_data_to_list(input_list_name = "checks_output", input_df_name = "df_logic_c_lcsi_no_plants_crops_but_emergency2_c9")
+
 
 # log 999
 cols_with_integer_values <- df_survey |> filter(type %in% c("integer")) |> pull(name) 
