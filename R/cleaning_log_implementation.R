@@ -42,7 +42,9 @@ cols_to_escape <- c("index", "start", "end", "today", "starttime", "endtime", "_
 data_nms <- names(readxl::read_excel(path = data_path, n_max = 3000))
 c_types <- case_when(str_detect(string = data_nms, pattern = "_other$") ~ "text", TRUE ~ "guess")
 
-df_raw_data <- readxl::read_excel(path = data_path, col_types = c_types, na = c("NA", "N/A", "n/a"))#|> 
+df_raw_data <- readxl::read_excel(path = data_path, col_types = c_types, na = c("NA", "N/A", "n/a"))|> 
+  select(-starts_with("healthcare_seek"))
+#|> 
   # mutate(across(.cols = -c(contains(cols_to_escape)),
   #              .fns = ~ifelse(str_detect(string = .,
   #                                        pattern = fixed(pattern = "N/A", ignore_case = TRUE)), "NA",.))) |>
@@ -85,8 +87,7 @@ vars_to_remove_from_data = c("deviceid", "audit", "audit_URL", "instance_name", 
 df_cleaning_log_main <-  df_cleaning_log |> 
   filter(is.na(sheet))
 
-df_cleaning_step <- supporteR::cleaning_support(input_df_raw_data = df_raw_data|> 
-                                                  select(-starts_with("healthcare_seek")),
+df_cleaning_step <- supporteR::cleaning_support(input_df_raw_data = df_raw_data,
                                                 input_df_survey = df_survey,
                                                 input_df_choices = df_choices,
                                                 input_df_cleaning_log = df_cleaning_log_main, 
@@ -112,8 +113,7 @@ df_cleaned_data_log_roster <- df_raw_data_loop_roster |>
 df_cleaning_log_health <- df_cleaning_log |> 
   filter(uuid %in% df_raw_data_loop_health$`_uuid`)
 remove_index <- df_cleaning_log_health |> filter(!is.na(index))
-df_cleaned_data_log_health <- supporteR::cleaning_support(input_df_raw_data = df_raw_data_loop_health|> 
-                                                            select(-starts_with("healthcare_seek")),
+df_cleaned_data_log_health <- supporteR::cleaning_support(input_df_raw_data = df_raw_data_loop_health,
                                                           input_df_survey = df_survey,
                                                           input_df_choices = df_choices,
                                                           input_df_cleaning_log = df_cleaning_log_health, 
