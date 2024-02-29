@@ -1,4 +1,5 @@
 ###############################################################################
+
 # creating composite indicators -----------------------------------------------
 
 create_composite_indicators <- function(input_df) {
@@ -40,7 +41,7 @@ create_composite_indicators <- function(input_df) {
            i.respondent_age = case_when(respondent_age <= 24 ~ "age_18_24",
                                         respondent_age <= 39 ~ "age_25_39",
                                         respondent_age <= 59 ~ "age_40_59",
-                                        respondent_age > 59 ~ "age_60+"),
+                                        respondent_age > 59 ~ "age_60+")
            #int.hh_number_male = sum(c_across(c("hh_number_men_count", "hh_number_boys_count")), na.rm = T),
            #int.hh_number_female = sum(c_across(c("hh_number_women_count", "hh_number_girls_count")), na.rm = T)
            
@@ -358,7 +359,76 @@ create_composite_indicators <- function(input_df) {
                                            i.fc_matrix_fcs_hhs %in% c(4, 5, 8, 9, 13, 19, 20, 23, 24, 27, 28, 33, 34, 37, 38, 41, 42, 43) ~ "Phase 3",
                                            i.fc_matrix_fcs_hhs %in% c(10, 14, 15, 25, 29, 35, 39, 40, 44) ~ "Phase 4",
                                            i.fc_matrix_fcs_hhs %in% c(30, 45) ~ "Phase 5"),
-    ) |> 
+  
+  #flag_lcsi_liv_livestock - LCSI coherence between the use of livestock-related coping mechanisms and livelihoods systems of the HH can be further reviewed if not already.
+  
+  liv_stress_4 = ifelse(hh_own_livestock2=="no"&liv_stress_4 == "yes","not_applicable", liv_stress_4),
+  liv_emergency_2 = ifelse(hh_own_livestock2 =="no"&liv_emergency_2=="yes","not_applicable",liv_emergency_2),
+  liv_crisis_1 = ifelse(hh_plant_crops=="did_not_plant"&liv_crisis_1=="yes", "not_applicable",liv_crisis_1),
+  liv_emergency_1 = ifelse(hh_member_currently_notliving_with_family =="none"&liv_emergency_1=="yes","not_applicable", liv_emergency_1),
+  
+  ##flag_lcsi_coherence - LCSI entries where only emergency OR crisis coping are reported and all the other options are “no” or “NA”
+  #liv_stress_1
+  liv_stress_1 = ifelse(
+    (liv_stress_1 %in% c("no_had_no_need", "not_applicable")| 
+      liv_stress_2 %in% c("no_had_no_need", "not_applicable")|
+     liv_stress_3 %in% c("no_had_no_need", "not_applicable")|
+     liv_stress_4 %in% c("no_had_no_need", "not_applicable"))&
+     ((liv_crisis_1 %in% c("yes", "no_exhausted")|liv_crisis_2 %in% c("yes", "no_exhausted")|liv_crisis_3 %in% c("yes", "no_exhausted")|
+        liv_emergency_1 %in% c("yes", "no_exhausted")|liv_emergency_2 %in% c("yes", "no_exhausted")|liv_emergency_3 %in% c("yes", "no_exhausted"))),"not_applicable",liv_stress_1),
+  
+  # liv_stress_2
+  liv_stress_2 = ifelse(
+    (liv_stress_1 %in% c("no_had_no_need", "not_applicable")| 
+       liv_stress_2 %in% c("no_had_no_need", "not_applicable")|
+       liv_stress_3 %in% c("no_had_no_need", "not_applicable")|
+       liv_stress_4 %in% c("no_had_no_need", "not_applicable"))&
+       ((liv_crisis_1 %in% c("yes", "no_exhausted")|liv_crisis_2 %in% c("yes", "no_exhausted")|liv_crisis_3 %in% c("yes", "no_exhausted")|
+          liv_emergency_1 %in% c("yes", "no_exhausted")|liv_emergency_2 %in% c("yes", "no_exhausted")|liv_emergency_3 %in% c("yes", "no_exhausted"))),"not_applicable",liv_stress_2),
+  
+  #liv_stress_3
+  liv_stress_3 = ifelse(
+    (liv_stress_1 %in% c("no_had_no_need", "not_applicable")| 
+       liv_stress_2 %in% c("no_had_no_need", "not_applicable")|
+       liv_stress_3 %in% c("no_had_no_need", "not_applicable")|
+       liv_stress_4 %in% c("no_had_no_need", "not_applicable"))&
+       ((liv_crisis_1 %in% c("yes", "no_exhausted")|liv_crisis_2 %in% c("yes", "no_exhausted")|liv_crisis_3 %in% c("yes", "no_exhausted")|
+          liv_emergency_1 %in% c("yes", "no_exhausted")|liv_emergency_2 %in% c("yes", "no_exhausted")|liv_emergency_3 %in% c("yes", "no_exhausted"))),"not_applicable",liv_stress_3),
+  
+  #liv_stress_4
+  liv_stress_4 = ifelse(
+    (liv_stress_1 %in% c("no_had_no_need", "not_applicable")| 
+       liv_stress_2 %in% c("no_had_no_need", "not_applicable")|
+       liv_stress_3 %in% c("no_had_no_need", "not_applicable")|
+       liv_stress_4 %in% c("no_had_no_need", "not_applicable"))&
+       ((liv_crisis_1 %in% c("yes", "no_exhausted")|liv_crisis_2 %in% c("yes", "no_exhausted")|liv_crisis_3 %in% c("yes", "no_exhausted")|
+          liv_emergency_1 %in% c("yes", "no_exhausted")|liv_emergency_2 %in% c("yes", "no_exhausted")|liv_emergency_3 %in% c("yes", "no_exhausted"))),"not_applicable",liv_stress_4),
+  
+  # liv_crisis_1
+  liv_crisis_1 = ifelse(
+    (liv_crisis_1 %in% c("no_had_no_need", "not_applicable")| 
+       liv_crisis_2 %in% c("no_had_no_need", "not_applicable")|
+       liv_crisis_3 %in% c("no_had_no_need", "not_applicable"))&
+      ((liv_emergency_1 %in% c("yes", "no_exhausted")|liv_emergency_2 %in% c("yes", "no_exhausted")|liv_emergency_3 %in% c("yes", "no_exhausted"))),"not_applicable",liv_crisis_1),
+  
+  # liv_crisis_2
+  liv_crisis_1 = ifelse(
+    (liv_crisis_1 %in% c("no_had_no_need", "not_applicable")| 
+       liv_crisis_2 %in% c("no_had_no_need", "not_applicable")|
+       liv_crisis_3 %in% c("no_had_no_need", "not_applicable"))&
+      ((liv_emergency_1 %in% c("yes", "no_exhausted")|liv_emergency_2 %in% c("yes", "no_exhausted")|liv_emergency_3 %in% c("yes", "no_exhausted"))),"not_applicable",liv_crisis_2),
+  
+  # liv_crisis_3
+  liv_crisis_1 = ifelse(
+    (liv_crisis_1 %in% c("no_had_no_need", "not_applicable")| 
+       liv_crisis_2 %in% c("no_had_no_need", "not_applicable")|
+       liv_crisis_3 %in% c("no_had_no_need", "not_applicable"))&
+      ((liv_emergency_1 %in% c("yes", "no_exhausted")|liv_emergency_2 %in% c("yes", "no_exhausted")|liv_emergency_3 %in% c("yes", "no_exhausted"))),"not_applicable",liv_crisis_3),
+  
+  
+  )|>
+    ##entries where all answers are ‘NA’ can be removed for this indicator only – as it would indicate some misunderstanding at some stage of the data collection. flag_lcsi_na - LCSI
+    # across(.cols = starts_with("liv_."), .fns = ~ ifelse((is.infinite(.x)|is.nan(.x)), NA, .))|>
     addindicators::add_lcsi(lcsi_stress_vars = c("liv_stress_1", "liv_stress_2", "liv_stress_3", "liv_stress_4"),
                             lcsi_crisis_vars = c("liv_crisis_1", "liv_crisis_2", "liv_crisis_3"),
                             lcsi_emergency_vars = c("liv_emergency_1", "liv_emergency_2", "liv_emergency_3"),
@@ -370,28 +440,7 @@ create_composite_indicators <- function(input_df) {
     select(-c(starts_with("int.")))
 }
 
-# create_composite_indicators_roster <- function(input_df) {
-#   input_df |> 
-#     dplyr::mutate(i.individual_age_cat = case_when(
-#       ind_age<18~"children_17-",
-#       ind_age>=18~"adults_18+"
-#     ),
-#     i.individual_genre_cat=case_when(
-#       ind_age<13 & ind_gender =="female"~"women aged 12 and under",
-#       ind_age>=13 & ind_gender =="female"~"woman aged 13 over"
-#     ),
-#    i.individual_age_school_cat = case_when(
-#      ind_age<6~"NA",
-#       ind_age>=6 &ind_age<18 ~ "school age children 6-17",
-#       ind_age>18 ~ "other age"
-#     ),
-#    i.individual_genre_age_cat = case_when(
-#       ind_age>=6 & ind_age<18 & ind_gender =="female"~"girl school 6-17",
-#       ind_age>=6 & ind_age <18 & ind_gender == "male"~"boy school 6-17",
-#       
-#     )
-#     )
-# }
+
 
 
 ###############################################################################
