@@ -18,7 +18,7 @@ library(healthyr)
 
 # Step 1: Load your Dataset ####
 
-df <- readxl::read_excel(path = "outputs/20240222_clean_data_eth_lcsa_somali.xlsx", na = "NA") |> 
+df <- readxl::read_excel(path = "outputs/20240228_clean_data_eth_lcsa_somali.xlsx", na = "NA") |> 
   mutate(across(.cols = liv_stress_1:liv_emergency_3, 
                 .fns = ~case_when(.x %in% c("yes") ~ "1",
                                   .x %in% c("no_had_no_need") ~ "2",
@@ -58,7 +58,8 @@ df2 <- format_nut_health_indicators(df = df,
 
 # Step 3: Review a Quality Summary Report ####
 
- (create_fsl_quality_report(df = df2, short_report = TRUE))
+ 
+(create_fsl_quality_report(df = df2, short_report = TRUE))
 # 
  (create_fsl_quality_report(df = df2, short_report = FALSE))
 # 
