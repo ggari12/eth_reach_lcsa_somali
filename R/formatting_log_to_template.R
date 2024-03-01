@@ -32,7 +32,7 @@ df_raw_data <- readxl::read_excel(path = loc_data, col_types = c_types) |>
                                           pattern = fixed(pattern = "N/A", ignore_case = TRUE)), "NA", .))) 
 
 # import clean data
-clean_data_path <- "inputs/20240228_clean_data_eth_lcsa_somali.xlsx"
+clean_data_path <- "inputs/20240301_clean_data_eth_lcsa_somali.xlsx"
 clean_data_nms <- names(readxl::read_excel(path = clean_data_path, n_max = 3000, sheet = "cleaned_main_data"))
 clean_c_types <- ifelse(str_detect(string = clean_data_nms, pattern = "_other$"), "text", "guess")
 df_main_clean_data <- readxl::read_excel(path = clean_data_path, sheet = "cleaned_main_data", col_types = clean_c_types, na = "NA") 
