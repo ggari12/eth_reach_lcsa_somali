@@ -11,7 +11,7 @@ getwd()
 # devtools::install_github("twesigye10/supporteR")
 
 # clean data
-data_path <- "outputs/20240228_clean_data_eth_lcsa_somali.xlsx"
+data_path <- "outputs/20240301_clean_data_eth_lcsa_somali.xlsx"
 weight_table <- readxl::read_excel("inputs/data_eth_lcsa_somali_weighted.xlsx")|>
   dplyr::group_by(hh_zone, pop_group)|>
   mutate(hh_zone = case_when(hh_zone =="ET0508"~"Afder",
